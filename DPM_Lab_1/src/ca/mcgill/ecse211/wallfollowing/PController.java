@@ -7,8 +7,8 @@ public class PController implements UltrasonicController {
   /* Constants */
   private static final int MOTOR_SPEED = 200;
   private static final int FILTER_OUT = 20;
-  private static final double PROPCONST = 2.0;
-  public static final int MAXCORRECTION= 50;
+  private static final double PROPCONST = 2.5;
+  public static final int MAXCORRECTION= 100;
 
   private final int bandCenter;
   private final int bandWidth;
@@ -51,7 +51,7 @@ public class PController implements UltrasonicController {
     int distError = distance - (bandCenter);  
     int motorCorrection = calcProp(distError);
     
-    if(distance < 15) {
+    if(distance < 10) {
 		WallFollowingLab.rightMotor.setSpeed(MOTOR_SPEED + motorCorrection);
 		WallFollowingLab.leftMotor.setSpeed(MOTOR_SPEED + motorCorrection);
 		WallFollowingLab.rightMotor.backward();
@@ -62,7 +62,7 @@ public class PController implements UltrasonicController {
 		WallFollowingLab.leftMotor.setSpeed(MOTOR_SPEED - motorCorrection);
 		WallFollowingLab.leftMotor.forward();
 		WallFollowingLab.rightMotor.forward();
-	}else if(distance < bandCenter + bandWidth) {
+	}else if(distance < bandCenter - bandWidth) {
 		WallFollowingLab.rightMotor.setSpeed(MOTOR_SPEED - motorCorrection);
 		WallFollowingLab.leftMotor.setSpeed(MOTOR_SPEED + motorCorrection * 1);
 		WallFollowingLab.leftMotor.forward(); 
