@@ -10,6 +10,8 @@ public class BangBangController implements UltrasonicController {
 	private final int motorHigh;
 	private int distance;
 	private int filterControl;
+	private boolean didReverse;
+	private int reverseCounter;
 
 	private int deltaSpeed = 200;
 	private static final int FILTER_OUT = 20;
@@ -20,6 +22,7 @@ public class BangBangController implements UltrasonicController {
 		this.bandwidth = bandwidth;
 		this.motorLow = motorLow;
 		this.motorHigh = motorHigh;
+		this.reverseCounter = 0;
 		WallFollowingLab.leftMotor.setSpeed(motorHigh); // Start robot moving forward
 		WallFollowingLab.rightMotor.setSpeed(motorHigh);
 	}
@@ -32,9 +35,17 @@ public class BangBangController implements UltrasonicController {
 			this.distance = distance;
 		} else {
 			filterControl = 0;
-			this.distance = distance;
+			if(didReverse && (reverseCounter < 10)) {
+				reverseCounter++;
+				this.distance = distance/2;
+			}else{
+				didReverse = false;
+				this.distance = distance;
+			};
 		}
 		if(distance < 10) {
+			reverseCounter = 0;
+			didReverse = true;
 			WallFollowingLab.rightMotor.setSpeed(motorHigh + deltaSpeed);
 			WallFollowingLab.leftMotor.setSpeed(motorLow);
 			WallFollowingLab.rightMotor.backward();

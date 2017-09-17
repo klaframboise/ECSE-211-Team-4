@@ -6,20 +6,25 @@ public class PController implements UltrasonicController {
 
   /* Constants */
   private static final int MOTOR_SPEED = 200;
-  private static final int FILTER_OUT = 20;
+  private static final int FILTER_OUT = 10;
   private static final double PROPCONST = 2.5;
-  public static final int MAXCORRECTION= 100;
+  public static final int MAXCORRECTION= 50;
+  
 
   private final int bandCenter;
   private final int bandWidth;
   private int distance;
   private int filterControl;
+  private boolean didReverse;
+  private int reverseCounter;
+  
   //private float reverseAttenuation;
 
   public PController(int bandCenter, int bandwidth) {
     this.bandCenter = bandCenter;
     this.bandWidth = bandwidth;
     this.filterControl = 0;
+    this.reverseCounter = 0;
     //this.reverseAttenuation = 0.5f;
     WallFollowingLab.leftMotor.setSpeed(MOTOR_SPEED); // Initalize motor rolling forward
     WallFollowingLab.rightMotor.setSpeed(MOTOR_SPEED);
@@ -34,11 +39,11 @@ public class PController implements UltrasonicController {
     // (n.b. this was not included in the Bang-bang controller, but easily
     // could have).
     //
-    if (distance >= 250 && filterControl < FILTER_OUT) {
+    if (distance >= 60 && filterControl < FILTER_OUT) {
       // bad value, do not set the distance var, however do increment the
       // filter value
       filterControl++;
-    } else if (distance >= 250) {
+    } else if (distance >= 60) {
       // We have repeated large values, so there must actually be nothing
       // there: leave the distance alone
       this.distance = distance;
@@ -46,25 +51,33 @@ public class PController implements UltrasonicController {
       // distance went below 255: reset filter and leave
       // distance alone.
       filterControl = 0;
-      this.distance = distance;
+      if(didReverse && (reverseCounter < 10)) {
+    	  reverseCounter++;
+      this.distance = distance/2;
+      }else{
+      didReverse = false;
+    	  this.distance = distance;
+      };
     }
     int distError = distance - (bandCenter);  
     int motorCorrection = calcProp(distError);
     
-    if(distance < 10) {
+    if(distance < 15) {
+    		reverseCounter = 0;
 		WallFollowingLab.rightMotor.setSpeed(MOTOR_SPEED + motorCorrection);
 		WallFollowingLab.leftMotor.setSpeed(MOTOR_SPEED + motorCorrection);
 		WallFollowingLab.rightMotor.backward();
 		WallFollowingLab.leftMotor.forward();
+		didReverse = true;
 	}
     else if(distance > bandCenter + bandWidth) {
-		WallFollowingLab.rightMotor.setSpeed(MOTOR_SPEED + motorCorrection * 1);
+		WallFollowingLab.rightMotor.setSpeed(MOTOR_SPEED + motorCorrection);
 		WallFollowingLab.leftMotor.setSpeed(MOTOR_SPEED - motorCorrection);
 		WallFollowingLab.leftMotor.forward();
 		WallFollowingLab.rightMotor.forward();
 	}else if(distance < bandCenter - bandWidth) {
 		WallFollowingLab.rightMotor.setSpeed(MOTOR_SPEED - motorCorrection);
-		WallFollowingLab.leftMotor.setSpeed(MOTOR_SPEED + motorCorrection * 1);
+		WallFollowingLab.leftMotor.setSpeed(MOTOR_SPEED + motorCorrection);
 		WallFollowingLab.leftMotor.forward(); 
 		WallFollowingLab.rightMotor.forward();
 	}else {
