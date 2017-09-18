@@ -1,7 +1,5 @@
 package ca.mcgill.ecse211.wallfollowing;
 
-import lejos.hardware.motor.*;
-
 public class BangBangController implements UltrasonicController {
 
 	/* Constants */

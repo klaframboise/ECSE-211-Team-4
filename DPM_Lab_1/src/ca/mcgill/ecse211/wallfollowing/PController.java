@@ -1,7 +1,5 @@
 package ca.mcgill.ecse211.wallfollowing;
 
-import lejos.hardware.motor.EV3LargeRegulatedMotor;
-
 public class PController implements UltrasonicController {
 
 	/* Constants */
