@@ -15,12 +15,15 @@ public class OdometryCorrection extends Thread {
   // run method (required for Thread)
   public void run() {
     long correctionStart, correctionEnd;
+    double x, y, lastX, lastY, lastLineDistance, lineDistance;
 
     while (true) {
       correctionStart = System.currentTimeMillis();
 
       //TODO Place correction implementation here
-
+      lastX = x;
+      lastY = y;
+      
       // this ensure the odometry correction occurs only once every period
       correctionEnd = System.currentTimeMillis();
       if (correctionEnd - correctionStart < CORRECTION_PERIOD) {
