@@ -17,7 +17,7 @@ public class BangBangController implements UltrasonicController {
 
 	public BangBangController(int bandCenter, int bandwidth, int motorLow, int motorHigh) {
 		// Default Constructor
-		this.bandCenter = bandCenter;
+		this.bandCenter = (int)(bandCenter * 1.25);
 		this.bandwidth = bandwidth;
 		this.motorLow = motorLow;
 		this.motorHigh = motorHigh;
@@ -29,7 +29,7 @@ public class BangBangController implements UltrasonicController {
 	@Override
 	public void processUSData(int distance) {
 		// filter out non-repeating large values (false negatives)
-		if (distance >= 255 && filterControl < FILTER_OUT) {
+		if (distance >= 60 && filterControl < FILTER_OUT) {
 			filterControl++;
 		// action repeating large values
 		} else if (distance >= 255) {
@@ -47,7 +47,7 @@ public class BangBangController implements UltrasonicController {
 				this.distance = distance;
 			};
 		}
-		// machine too close to wall, reverse to avoid collision, proportional  to error
+		// machine too close to wall, reverse to avoid collision
 		if(distance < 10) {
 			reverseCounter = 0;
 			didReverse = true;
