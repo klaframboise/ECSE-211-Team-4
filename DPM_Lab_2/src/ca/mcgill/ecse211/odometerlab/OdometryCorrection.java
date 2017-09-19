@@ -15,7 +15,8 @@ public class OdometryCorrection extends Thread {
   // run method (required for Thread)
   public void run() {
     long correctionStart, correctionEnd;
-    double x, y, lastX, lastY, lastLineDistance, lineDistance;
+    double lastX, lastY, lastLineDistance, lineDistance;
+    double x = odometer.getX(), y = odometer.getY(); 
 
     while (true) {
       correctionStart = System.currentTimeMillis();
