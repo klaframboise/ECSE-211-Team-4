@@ -13,6 +13,7 @@ public class Odometer extends Thread {
 	private EV3LargeRegulatedMotor rightMotor;
 
 	private static final long ODOMETER_PERIOD = 25; /*odometer update period, in ms*/
+	public static final boolean[] UPDATE_ALL = {true, true, true}; 
 
 	private Object lock; /*lock object for mutual exclusion*/
 
@@ -35,10 +36,10 @@ public class Odometer extends Thread {
 	// run method (required for Thread)
 	public void run() {
 		long updateStart, updateEnd;
-		
+
 		int leftLastTachoCount, rightLastTachoCount;
 		double dLeftWheel, dRightWheel, deltaD, deltaT, dX, dY;
-		
+
 
 		while (true) {
 			updateStart = System.currentTimeMillis();
@@ -53,22 +54,22 @@ public class Odometer extends Thread {
 				// keep last iteration's tacho counts
 				rightLastTachoCount = rightMotorTachoCount;
 				leftLastTachoCount = leftMotorTachoCount;
-				
+
 				// get new tacho counts
 				rightMotorTachoCount = rightMotor.getTachoCount();
 				leftLastTachoCount = leftMotor.getTachoCount();
-				
+
 				// find each wheel's displacement
 				dLeftWheel = Math.PI * OdometryLab.WHEEL_RADIUS * (leftMotorTachoCount - leftLastTachoCount) / 180;
 				dRightWheel = Math.PI * OdometryLab.WHEEL_RADIUS * (rightMotorTachoCount - rightLastTachoCount) / 180;
-				
-				
+
+
 				deltaD = (dLeftWheel + dRightWheel)/2; // magnitude of displacement
 				deltaT = (dLeftWheel - dRightWheel)/OdometryLab.TRACK; // change in heading
 				theta = (theta + deltaT) % 360; // update heading
 				dX = deltaD * Math.sin(theta); // displacement on x-axis
 				dY = deltaD * Math.cos(theta); // displacement on y-axis
-				
+
 				// update coords
 				x += dX;
 				y += dY;
