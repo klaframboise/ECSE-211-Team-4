@@ -44,6 +44,7 @@ public class SquareDriver {
 
 			direction = (direction + 1) % 4;
 		}
+		
 	}
 
 	private static int convertDistance(double radius, double distance) {

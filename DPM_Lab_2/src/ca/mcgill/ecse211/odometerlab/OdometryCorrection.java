@@ -17,7 +17,7 @@ public class OdometryCorrection extends Thread {
 	private static final long CORRECTION_PERIOD = 10;
 	private static final int SAMPLE_SIZE = 10;
 	// TODO measure reflectivity of line
-	private static final float LINE_RED_INTENSITY = 0.15f;
+	private static final float LINE_RED_INTENSITY = 0.25f;
 	private static final float GRID_SIZE = 30.48f;
 
 	private Odometer odometer;
@@ -35,6 +35,7 @@ public class OdometryCorrection extends Thread {
 		double[] lastPos = new double[3];
 		double[] pos = new double[3];
 		boolean update[] = {true, true, false};
+		char lastDir = 'N';
 		int counter = 0;
 
 		while (true) {
@@ -45,12 +46,11 @@ public class OdometryCorrection extends Thread {
 				// increase line count
 				counter++;
 				//play sound
-				//Sound.beep();
+				Sound.beep();
 
-				// line following a direction change, lack of previous data to correct against
-				// take position of this line per odo as position of the last correction
-				if (counter % 3 == 1) { 
+				if ((lastDir != SquareDriver.getDirection()) || counter == 1) { 
 					odometer.getPosition(lastPos, Odometer.UPDATE_ALL);
+					lastDir = SquareDriver.getDirection();
 				}
 				// correct according to the direction
 				else {
