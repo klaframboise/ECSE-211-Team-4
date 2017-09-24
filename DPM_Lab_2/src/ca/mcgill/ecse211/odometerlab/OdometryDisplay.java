@@ -35,6 +35,8 @@ public class OdometryDisplay extends Thread {
 
 			// get the odometry information
 			odometer.getPosition(position, new boolean[] {true, true, true});
+			
+			position[2] = (position[2] * 180)/Math.PI;
 
 			// display odometry information
 			for (int i = 0; i < 3; i++) {

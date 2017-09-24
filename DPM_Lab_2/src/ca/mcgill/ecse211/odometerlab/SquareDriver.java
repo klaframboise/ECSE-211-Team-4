@@ -38,11 +38,12 @@ public class SquareDriver {
 			// turn 90 degrees clockwise
 			leftMotor.setSpeed(ROTATE_SPEED);
 			rightMotor.setSpeed(ROTATE_SPEED);
+			
+			direction = (direction + 1) % 4;
 
 			leftMotor.rotate(convertAngle(leftRadius, width, 90.0), true);
 			rightMotor.rotate(-convertAngle(rightRadius, width, 90.0), false);
 
-			direction = (direction + 1) % 4;
 		}
 		
 	}

@@ -61,7 +61,7 @@ public class OdometryCorrection extends Thread {
 						break;
 					case 'E': 
 						pos[0] = lastPos[0] + GRID_SIZE; 
-						pos[1] = lastPos[1] + GRID_SIZE * Math.tan(90 - odometer.getTheta());
+						pos[1] = lastPos[1] + GRID_SIZE * Math.tan((Math.PI/2) - odometer.getTheta());
 						break;
 					case 'S': 
 						pos[1] = lastPos[1] - GRID_SIZE; 
@@ -69,7 +69,7 @@ public class OdometryCorrection extends Thread {
 						break;
 					case 'W': 
 						pos[0] = lastPos[0] - GRID_SIZE;
-						pos[1] = lastPos[1] + GRID_SIZE * Math.tan(90 - odometer.getTheta());
+						pos[1] = lastPos[1] + GRID_SIZE * Math.tan((Math.PI/2) - odometer.getTheta());
 						break;
 					}
 
