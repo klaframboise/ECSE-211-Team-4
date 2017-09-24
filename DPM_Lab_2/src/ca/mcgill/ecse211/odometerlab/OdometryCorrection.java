@@ -5,6 +5,7 @@ package ca.mcgill.ecse211.odometerlab;
 
 import java.util.Arrays;
 
+import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.SensorModes;
@@ -16,11 +17,11 @@ public class OdometryCorrection extends Thread {
 	private static final long CORRECTION_PERIOD = 10;
 	private static final int SAMPLE_SIZE = 10;
 	// TODO measure reflectivity of line
-	private static final int LINE_RED_INTENSITY = 1;
+	private static final float LINE_RED_INTENSITY = 0.15f;
 	private static final float GRID_SIZE = 30.48f;
 
 	private Odometer odometer;
-	public static SensorModes colorSensor = new EV3ColorSensor(LocalEV3.get().getPort("1"));
+	public static SensorModes colorSensor = new EV3ColorSensor(LocalEV3.get().getPort("S1"));
 	public static SampleProvider colorSampler = colorSensor.getMode("Red");
 
 	// constructor
@@ -43,6 +44,8 @@ public class OdometryCorrection extends Thread {
 
 				// increase line count
 				counter++;
+				//play sound
+				//Sound.beep();
 
 				// line following a direction change, lack of previous data to correct against
 				// take position of this line per odo as position of the last correction

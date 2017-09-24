@@ -1,5 +1,6 @@
 package ca.mcgill.ecse211.odometerlab;
 
+import lejos.ev3.tools.EV3Console;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 public class Odometer extends Thread {
@@ -57,7 +58,7 @@ public class Odometer extends Thread {
 
 				// get new tacho counts
 				rightMotorTachoCount = rightMotor.getTachoCount();
-				leftLastTachoCount = leftMotor.getTachoCount();
+				leftMotorTachoCount = leftMotor.getTachoCount();
 
 				// find each wheel's displacement
 				dLeftWheel = Math.PI * OdometryLab.WHEEL_RADIUS * (leftMotorTachoCount - leftLastTachoCount) / 180;
@@ -66,7 +67,7 @@ public class Odometer extends Thread {
 
 				deltaD = (dLeftWheel + dRightWheel)/2; // magnitude of displacement
 				deltaT = (dLeftWheel - dRightWheel)/OdometryLab.TRACK; // change in heading
-				theta = (theta + deltaT) % 360; // update heading
+				theta = (theta + deltaT) % (2*Math.PI); // update heading
 				dX = deltaD * Math.sin(theta); // displacement on x-axis
 				dY = deltaD * Math.cos(theta); // displacement on y-axis
 
