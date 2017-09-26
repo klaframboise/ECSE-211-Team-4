@@ -50,41 +50,40 @@ public class OdometryCorrection extends Thread {
 				//play sound
 				Sound.beep();
 
-				if ((lastDir != SquareDriver.getDirection()) || counter == 1) { 
-					odometer.getPosition(lastPos, Odometer.UPDATE_ALL);
-					lastDir = SquareDriver.getDirection();
-				}
+				//				if ((lastDir != SquareDriver.getDirection()) || counter == 1) { 
+				//					odometer.getPosition(lastPos, Odometer.UPDATE_ALL);
+				//					lastDir = SquareDriver.getDirection();
+				//				}
 				// correct according to the direction
-				else {
-					switch(SquareDriver.getDirection()) {
-					case 'N':
-						pos[1] = counterY*GRID_SIZE;
-						pos[0] = counterY*GRID_SIZE*Math.tan(odometer.getTheta());
-						counterY++;
-						odometer.setPosition(pos, update);
-						break;
-					case 'E':
-						pos[0] = counterX*GRID_SIZE; 
-						pos[1] = counterX*GRID_SIZE * Math.tan((Math.PI/2) - odometer.getTheta());
-						counterX++;
-						odometer.setPosition(pos, update);
-						break;
-					case 'S': 
-						counterY--;
-						pos[1] = counterY*GRID_SIZE; 
-						pos[0] = counterY*GRID_SIZE * Math.tan(odometer.getTheta());
-						odometer.setPosition(pos, update);
-						break;
-					case 'W': 
-						counterX--;
-						pos[0] = counterX*GRID_SIZE;
-						pos[1] = counterX*GRID_SIZE * Math.tan(odometer.getTheta()-(Math.PI/2));
-						odometer.setPosition(pos, update);
-						break;
-					}
+				switch(SquareDriver.getDirection()) {
+				case 'N':
+					pos[1] = counterY*GRID_SIZE;
+					pos[0] = odometer.getX()  + GRID_SIZE*Math.tan(odometer.getTheta());
+					counterY++;
+					odometer.setPosition(pos, update);
+					break;
+				case 'E':
+					pos[0] = counterX*GRID_SIZE; 
+					pos[1] = odometer.getY()  + GRID_SIZE * Math.tan((Math.PI/2) - odometer.getTheta());
+					counterX++;
+					odometer.setPosition(pos, update);
+					break;
+				case 'S': 
+					counterY--;
+					pos[1] = counterY*GRID_SIZE; 
+					pos[0] = odometer.getX()  + GRID_SIZE * Math.tan(((3/2)*Math.PI) - odometer.getTheta());
+					odometer.setPosition(pos, update);
+					break;
+				case 'W': 
+					counterX--;
+					pos[0] = counterX*GRID_SIZE;
+					pos[1] = odometer.getY() + GRID_SIZE * Math.tan((Math.PI/2) - odometer.getTheta());
+					odometer.setPosition(pos, update);
+					break;
+
 
 					//update odo
-					
+
 					//
 					//					//save line pos for next correction
 					//					lastPos = Arrays.copyOf(pos, 3);

@@ -17,7 +17,7 @@ public class OdometryLab {
 
 	// TODO measure values
 	public static final double WHEEL_RADIUS = 2.1;
-	public static final double TRACK = 13.6;
+	public static final double TRACK = 13.5;
 
 	public static void main(String[] args) {
 		int buttonChoice;
