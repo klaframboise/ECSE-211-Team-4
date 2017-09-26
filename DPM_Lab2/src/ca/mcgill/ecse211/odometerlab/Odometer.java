@@ -68,6 +68,7 @@ public class Odometer extends Thread {
 				deltaD = (dLeftWheel + dRightWheel)/2; // magnitude of displacement
 				deltaT = (dLeftWheel - dRightWheel)/OdometryLab.TRACK; // change in heading
 				theta = (theta + deltaT) % (2*Math.PI); // update heading
+				theta = (theta < 0)? theta + 2 * Math.PI : theta;
 				dX = deltaD * Math.sin(theta); // displacement on x-axis
 				dY = deltaD * Math.cos(theta); // displacement on y-axis
 
