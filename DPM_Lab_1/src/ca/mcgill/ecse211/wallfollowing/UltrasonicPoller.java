@@ -1,7 +1,5 @@
 package ca.mcgill.ecse211.wallfollowing;
 
-import java.util.Arrays;
-
 import lejos.robotics.SampleProvider;
 
 /**
@@ -12,39 +10,33 @@ import lejos.robotics.SampleProvider;
  * or about 14 Hz.
  */
 public class UltrasonicPoller extends Thread {
-	private SampleProvider us;
-	private UltrasonicController cont;
-	private float[] usData;
+  private SampleProvider us;
+  private UltrasonicController cont;
+  private float[] usData;
 
-	public UltrasonicPoller(SampleProvider us, float[] usData, UltrasonicController cont) {
-		this.us = us;
-		this.cont = cont;
-		this.usData = usData;
-	}
+  public UltrasonicPoller(SampleProvider us, float[] usData, UltrasonicController cont) {
+    this.us = us;
+    this.cont = cont;
+    this.usData = usData;
+  }
 
-	/*
-	 * Sensors now return floats using a uniform protocol. Need to convert US result to an integer
-	 * [0,255] (non-Javadoc)
-	 * 
-	 * Sensor data is filtered. Will return the median of a set of samples
-	 * 
-	 * @see java.lang.Thread#run()
-	 */
-	public void run() {
-		int distance;
-		while (true) {
-			
-			for(int i = 0; i < usData.length; i++) {
-				us.fetchSample(usData, i); // acquire data
-			}
-			Arrays.sort(usData);	// sort array
-			distance = (int) ((usData[(usData.length/2)-1] + usData[usData.length/2]) / 2.0 * 100.0); // return median
-			cont.processUSData(distance); // now take action depending on value
-			try {
-				Thread.sleep(50);
-			} catch (Exception e) {
-			} // Poor man's timed sampling
-		}
-	}
+  /*
+   * Sensors now return floats using a uniform protocol. Need to convert US result to an integer
+   * [0,255] (non-Javadoc)
+   * 
+   * @see java.lang.Thread#run()
+   */
+  public void run() {
+    int distance;
+    while (true) {
+      us.fetchSample(usData, 0); // acquire data
+      distance = (int) (usData[0] * 100.0); // extract from buffer, cast to int, divide by 1/sqrt(2) to compensate for 45 deg angle
+      cont.processUSData(distance); // now take action depending on value
+      try {
+        Thread.sleep(50);
+      } catch (Exception e) {
+      } // Poor man's timed sampling
+    }
+  }
 
 }
