@@ -1,6 +1,8 @@
 package ca.mcgill.ecse211.navigation;
 
+import lejos.hardware.Button;
 import lejos.hardware.ev3.LocalEV3;
+import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.port.Port;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
@@ -12,6 +14,8 @@ public class NavigationLab {
 	public static final double WHEEL_RADIUS = 2.1;
 	public static final double TRACK = 13.5;
 	public static final int SAMPLE_SIZE = 10;
+	public static final double GRID_SIZE = 30.48;
+	private static final int[] WAYPOINTS = {2,1,1,1,1,2,2,0};	//input as {x1, y1, x2, y2, ..., xn, yn}
 
 	private static final Port usPort = LocalEV3.get().getPort("S1");
 	private static final EV3LargeRegulatedMotor leftMotor =
@@ -28,6 +32,31 @@ public class NavigationLab {
 		// this instance
 		float[] usData = new float[usDistance.sampleSize() * SAMPLE_SIZE]; // usData is the buffer in which data are
 		// returned
+		
+		TextLCD t = LocalEV3.get().getTextLCD();
+		
+		// clear the display
+		t.clear();
+		t.drawString("Press any button", 0, 0);
+		t.drawString("    to start    ", 0, 1);
+		Button.waitForAnyPress();
+		
+		// start odometer and display
+		Odometer odo = new Odometer(leftMotor, rightMotor);
+		Navigation nav = new Navigation(odo, leftMotor, rightMotor);
+		NavigationDisplay odoDisplay = new NavigationDisplay(odo, nav, t);
+		
+		odo.run();
+		odoDisplay.run();
+		
+		// navigate to waypoints
+		for(int i = 0; i < WAYPOINTS.length; i += 2) {
+			nav.travelTo(WAYPOINTS[i] * GRID_SIZE, WAYPOINTS[i+1] * GRID_SIZE);
+			
+			// wait for navigation to end
+			while(nav.isNavigating());
+		}
+
 
 	}
 

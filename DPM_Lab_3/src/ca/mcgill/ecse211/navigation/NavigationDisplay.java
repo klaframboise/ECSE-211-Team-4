@@ -6,14 +6,16 @@ package ca.mcgill.ecse211.navigation;
 
 import lejos.hardware.lcd.TextLCD;
 
-public class OdometryDisplay extends Thread {
+public class NavigationDisplay extends Thread {
 	private static final long DISPLAY_PERIOD = 250;
 	private Odometer odometer;
+	private Navigation nav;
 	private TextLCD t;
 
 	// constructor
-	public OdometryDisplay(Odometer odometer, TextLCD t) {
+	public NavigationDisplay(Odometer odometer, Navigation nav, TextLCD t) {
 		this.odometer = odometer;
+		this.nav = nav;
 		this.t = t;
 	}
 
@@ -32,6 +34,8 @@ public class OdometryDisplay extends Thread {
 			t.drawString("X:              ", 0, 0);
 			t.drawString("Y:              ", 0, 1);
 			t.drawString("T:              ", 0, 2);
+			t.drawString("Way-X:              ", 0, 3);
+			t.drawString("Way-Y:              ", 0, 4);
 
 			// get the odometry information
 			odometer.getPosition(position, new boolean[] {true, true, true});
@@ -42,6 +46,8 @@ public class OdometryDisplay extends Thread {
 			for (int i = 0; i < 3; i++) {
 				t.drawString(formattedDoubleToString(position[i], 2), 3, i);
 			}
+			t.drawString(formattedDoubleToString(nav.getWaypointX(), 2), 7, 3);
+			t.drawString(formattedDoubleToString(nav.getWaypointY(), 2), 7, 4);
 
 			// throttle the OdometryDisplay
 			displayEnd = System.currentTimeMillis();

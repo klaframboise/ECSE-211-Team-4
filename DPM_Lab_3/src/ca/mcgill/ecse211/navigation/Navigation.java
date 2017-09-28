@@ -11,17 +11,23 @@ public class Navigation implements UltrasonicController {
 	private Odometer odo;
 	private EV3LargeRegulatedMotor leftMotor, rightMotor;
 	private boolean isNavigating;
+	private double waypointX;
+	private double waypointY;
 	
 	public Navigation(Odometer odo, EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor) {
 		this.odo = odo;
 		this.leftMotor = leftMotor;
 		this.rightMotor = rightMotor;
 		isNavigating = false;
+		waypointX = 0;
+		waypointY = 0;
 	}
 	
 	void travelTo(double x, double y) {
 		
 		isNavigating = true;
+		waypointX = x;
+		waypointY = y;
 		
 		double dX = x - odo.getX();
 		double dY = y - odo.getY();
@@ -40,6 +46,12 @@ public class Navigation implements UltrasonicController {
 		//convert negative heading to positive 
 		if (heading < 0) {
 			heading += 2 * Math.PI;
+		}
+		
+		// reset the motors
+		for (EV3LargeRegulatedMotor motor : new EV3LargeRegulatedMotor[] {leftMotor, rightMotor}) {
+			motor.stop();
+			motor.setAcceleration(3000);
 		}
 		
 		//turn robot to wanted heading 
@@ -121,6 +133,14 @@ public class Navigation implements UltrasonicController {
 	public int readUSDistance() {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	public double getWaypointX() {
+		return waypointX;
+	}
+
+	public double getWaypointY() {
+		return waypointY;
 	}
 
 }

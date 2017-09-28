@@ -1,6 +1,5 @@
 package ca.mcgill.ecse211.navigation;
 
-import lejos.ev3.tools.EV3Console;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 public class Odometer extends Thread {
@@ -44,7 +43,6 @@ public class Odometer extends Thread {
 
 		while (true) {
 			updateStart = System.currentTimeMillis();
-			// TODO put (some of) your odometer code here
 
 			synchronized (lock) {
 				/**
