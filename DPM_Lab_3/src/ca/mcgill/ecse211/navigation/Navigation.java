@@ -1,5 +1,9 @@
 package ca.mcgill.ecse211.navigation;
 
+import lejos.hardware.Button;
+import lejos.hardware.Sound;
+import lejos.hardware.ev3.LocalEV3;
+import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 public class Navigation implements UltrasonicController {
@@ -36,17 +40,25 @@ public class Navigation implements UltrasonicController {
 		
 		
 		//compute heading
-		if (dY < 0) {
-			heading = Math.atan(dX/dY) + Math.PI;
+		if (dY <= 0 && dX < 0) { //ok
+			heading = -(Math.PI/2.0 + Math.atan(dY/dX));
 		}
-		else {
-			heading = Math.atan(dX/dY);
+		else if (dY > 0 && dX <= 0) { //ok
+			heading = 3.0*Math.PI/2.0 - Math.atan(dY/dX);
+		}
+		else if (dY < 0 && dX >= 0) { //TODO figure out trig for this condition
+			heading = -(3.0*Math.PI/2.0 - Math.atan(dY/dX));
+		}
+		else if(dY >= 0 && dX > 0) {		//ok
+			heading = Math.PI/2.0 - Math.atan(dY/dX);
 		}
 		
 		//convert negative heading to positive 
 		if (heading < 0) {
 			heading += 2 * Math.PI;
 		}
+		
+		//System.out.println("\n\n\n\n\n\nheading: " + heading);
 		
 		// reset the motors
 		for (EV3LargeRegulatedMotor motor : new EV3LargeRegulatedMotor[] {leftMotor, rightMotor}) {
@@ -70,9 +82,11 @@ public class Navigation implements UltrasonicController {
 	
 	void turnTo(double theta) {
 
-		double dTheta = odo.getTheta() - theta;
+		double dTheta = theta - odo.getTheta();
+		System.out.println("\n\n\n\n\n\ndtheta: " + dTheta);
 		
 		if (dTheta > Math.PI) {
+			dTheta = Math.abs(dTheta - 2 * Math.PI);
 			turn(dTheta * 180.0 / Math.PI, "left");
 		}
 		else {
@@ -125,7 +139,16 @@ public class Navigation implements UltrasonicController {
 
 	@Override
 	public void processUSData(int distance) {
-		// TODO Auto-generated method stub
+		
+		if(distance < 20) {
+			leftMotor.stop(true);
+			rightMotor.stop(true);
+			Sound.beep();
+			TextLCD t = LocalEV3.get().getTextLCD();
+			t.drawString("Obstacle encountered", 0, 0);
+			Button.waitForAnyPress();
+			System.exit(0);
+		}
 		
 	}
 

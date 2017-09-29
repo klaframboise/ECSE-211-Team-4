@@ -45,6 +45,7 @@ public class Odometer extends Thread {
 			updateStart = System.currentTimeMillis();
 
 			synchronized (lock) {
+				//System.out.println("\n\n\n odo running");
 				/**
 				 * Don't use the variables x, y, or theta anywhere but here! Only update the values of x, y,
 				 * and theta in this block. Do not perform complex math
