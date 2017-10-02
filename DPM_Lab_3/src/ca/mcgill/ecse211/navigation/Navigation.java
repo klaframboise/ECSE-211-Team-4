@@ -41,16 +41,20 @@ public class Navigation implements UltrasonicController {
 		
 		//compute heading
 		if (dY <= 0 && dX < 0) { //ok
-			heading = -(Math.PI/2.0 + Math.atan(dY/dX));
+			heading = -(Math.PI/2.0 + Math.atan(dY/dX)); //isn't it dX/dY ?
+			//heading = -(Math.PI - Math.atan(dX/dY));
 		}
 		else if (dY > 0 && dX <= 0) { //ok
 			heading = 3.0*Math.PI/2.0 - Math.atan(dY/dX);
+			//heading = -(Math.atan(dX/dY));
 		}
-		else if (dY < 0 && dX >= 0) { //TODO figure out trig for this condition
+		else if (dY < 0 && dX >= 0) { //ok
 			heading = -(3.0*Math.PI/2.0 - Math.atan(dY/dX));
+			//heading = (Math.PI - Math.atan(dX/dY);
 		}
 		else if(dY >= 0 && dX > 0) {		//ok
 			heading = Math.PI/2.0 - Math.atan(dY/dX);
+			//heading = (Math.atan(dX/dY));
 		}
 		
 		//convert negative heading to positive 
