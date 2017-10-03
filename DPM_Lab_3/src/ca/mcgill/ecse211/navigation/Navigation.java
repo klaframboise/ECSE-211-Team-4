@@ -33,12 +33,7 @@ public class Navigation extends Thread {
 				if(!isAvoiding) {
 					Sound.beep();
 					travelTo(WAYPOINTS[waypoint] * NavigationLab.GRID_SIZE, WAYPOINTS[waypoint + 1] * NavigationLab.GRID_SIZE);
-					try {
-						Thread.sleep(100);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+
 				}
 				if(!isAvoiding) {
 					waypoint += 2;
@@ -111,7 +106,7 @@ public class Navigation extends Thread {
 	 * @param dTheta change in heading wanted, in degrees
 	 * @param direction
 	 */
-	private void turn(double dTheta, String direction) {
+	public void turn(double dTheta, String direction) {
 
 		int distance = convertAngle(NavigationLab.WHEEL_RADIUS, NavigationLab.TRACK, dTheta);
 
@@ -140,6 +135,7 @@ public class Navigation extends Thread {
 		rightMotor.stop(false);
 
 		isAvoiding = true;
+		
 	}
 
 	void resumeNav() {

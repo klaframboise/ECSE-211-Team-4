@@ -7,7 +7,7 @@ import lejos.robotics.SampleProvider;
 
 public class ObstacleAvoidanceController extends Thread {
 
-	private static final int BAND_CENTER = 20;
+	private static final int BAND_CENTER = 10;
 	private static final int BAND_WIDTH = 5;
 	private static final double PROP_CONSTANT = 2.5;
 	private static final int MAXCORRECTION= 50;
@@ -16,28 +16,33 @@ public class ObstacleAvoidanceController extends Thread {
 
 	private SampleProvider us;
 	private float[] usData;
-	EV3LargeRegulatedMotor sensorMotor, rightMotor, leftMotor;
+	private EV3LargeRegulatedMotor sensorMotor, rightMotor, leftMotor;
+	private Odometer odo;
 	private boolean isAvoiding;
 	private Navigation nav;
 	private int distance;
 	private Object lock;
 
-	public ObstacleAvoidanceController(EV3LargeRegulatedMotor sensorMotor, EV3LargeRegulatedMotor rightMotor, EV3LargeRegulatedMotor leftMotor, Navigation nav, SampleProvider us, float[] usData) {
+	public ObstacleAvoidanceController(EV3LargeRegulatedMotor sensorMotor, EV3LargeRegulatedMotor rightMotor, EV3LargeRegulatedMotor leftMotor, Navigation nav, SampleProvider us, float[] usData, Odometer odo) {
 		this.us = us;
 		this.usData = usData;
 		this.sensorMotor = sensorMotor;
 		this.rightMotor = rightMotor;
 		this.leftMotor = leftMotor;
 		this.nav = nav;
+		this.odo = odo;
+		isAvoiding = false;
 		distance = 0;
 		lock = new Object();
-		
+
 		sensorMotor.setSpeed(50);
 	}
 
 	public void run() {
 
-		int motorCorrection, dirModifier = 1;
+		int motorCorrection, dirModifier = -1;
+		double startAvoidHeading = 0;
+		motorCorrection = 100;
 
 		while(true) {
 			synchronized(lock) {
@@ -46,45 +51,49 @@ public class ObstacleAvoidanceController extends Thread {
 
 				if(!isAvoiding && distance < (BAND_CENTER - BAND_WIDTH)) {
 					nav.pause();
-					sensorMotor.rotateTo(NAV_SENSOR_ANGLE + 45, false);
-					if(getFilteredDistance() > SAFE_DISTANCE) {
-						sensorMotor.rotateTo(NAV_SENSOR_ANGLE - 45, false);
-						dirModifier = -1;
+					sensorMotor.rotateTo(NAV_SENSOR_ANGLE + 90, false);
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
-					else {
-						dirModifier = 1;
-					}
+					nav.turn(90, "left");
+					startAvoidHeading = odo.getTheta();
 					isAvoiding = true;
 					continue;
+					//dirModifier = 1;
 				}
 
 				//avoid by following obstacle
 				if(isAvoiding) {
-					motorCorrection = calculateCorrection(distance - BAND_CENTER);
-					// machine outside of band center, accelerate outside wheel
-					if(distance > BAND_CENTER + BAND_WIDTH) {
-						rightMotor.setSpeed(NavigationLab.FORWARD_SPEED + dirModifier * motorCorrection);
-						leftMotor.setSpeed(NavigationLab.FORWARD_SPEED - dirModifier * motorCorrection);
-						leftMotor.forward();
-						rightMotor.forward();
-						// machine inside of band center, accelerate inside wheel
-					} else if(distance < BAND_CENTER - BAND_WIDTH) {
-						rightMotor.setSpeed(NavigationLab.FORWARD_SPEED - dirModifier * motorCorrection);
-						leftMotor.setSpeed(NavigationLab.FORWARD_SPEED + dirModifier * motorCorrection);
-						leftMotor.forward(); 
-						rightMotor.forward();
-						// machine within band
-					} else {
-						rightMotor.setSpeed(NavigationLab.FORWARD_SPEED);
-						rightMotor.setSpeed(NavigationLab.FORWARD_SPEED);
-						leftMotor.forward();
-						rightMotor.forward();
+					while(Math.abs(odo.getTheta() - startAvoidHeading) < Math.PI ) {
+						//motorCorrection = calculateCorrection(distance - BAND_CENTER);
+						// machine outside of band center, accelerate outside wheel
+						if(distance > BAND_CENTER + BAND_WIDTH) {
+							rightMotor.setSpeed(NavigationLab.FORWARD_SPEED + dirModifier * motorCorrection);
+							leftMotor.setSpeed(NavigationLab.FORWARD_SPEED - dirModifier * motorCorrection);
+							leftMotor.forward();
+							rightMotor.forward();
+							// machine inside of band center, accelerate inside wheel
+						} else if(distance < BAND_CENTER - BAND_WIDTH) {
+							rightMotor.setSpeed(NavigationLab.FORWARD_SPEED - dirModifier * motorCorrection);
+							leftMotor.setSpeed(NavigationLab.FORWARD_SPEED + dirModifier * motorCorrection);
+							leftMotor.forward(); 
+							rightMotor.forward();
+							// machine within band
+						} else {
+							rightMotor.setSpeed(NavigationLab.FORWARD_SPEED);
+							rightMotor.setSpeed(NavigationLab.FORWARD_SPEED);
+							leftMotor.forward();
+							rightMotor.forward();
+						}
 					}
 				}
 
 				// if distance is large enough, could be done avoiding
 				// try navigating again
-				if(isAvoiding && distance > SAFE_DISTANCE) {
+				if(isAvoiding) {
 					rightMotor.stop(true);
 					leftMotor.stop(false);
 					sensorMotor.rotateTo(NAV_SENSOR_ANGLE, false);
@@ -94,13 +103,14 @@ public class ObstacleAvoidanceController extends Thread {
 
 				// sleep for 50ms
 				try {
-					Thread.sleep(50);
+					Thread.sleep(250);
 				} catch (Exception e) {
 				} 
 			}
 		}
-
 	}
+
+
 
 	/*
 	 * Sensors now return floats using a uniform protocol. Need to convert US result to an integer

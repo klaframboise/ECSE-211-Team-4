@@ -47,7 +47,7 @@ public class NavigationLab {
 		Odometer odo = new Odometer(leftMotor, rightMotor);
 		//OdometryCorrection correction = new OdometryCorrection(odo);
 		Navigation nav = new Navigation(odo, leftMotor, rightMotor);
-		ObstacleAvoidanceController cont = new ObstacleAvoidanceController(sensorMotor, rightMotor, leftMotor, nav, usDistance, usData);
+		ObstacleAvoidanceController cont = new ObstacleAvoidanceController(sensorMotor, rightMotor, leftMotor, nav, usDistance, usData, odo);
 		NavigationDisplay navDisplay = new NavigationDisplay(odo, nav, cont, t);
 		
 		odo.start();
