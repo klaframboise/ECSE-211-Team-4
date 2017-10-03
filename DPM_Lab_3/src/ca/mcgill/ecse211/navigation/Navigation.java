@@ -38,31 +38,17 @@ public class Navigation implements UltrasonicController{
 		double distance = Math.sqrt(Math.pow(dX, 2) + Math.pow(dY, 2));
 		double heading = 0; 
 		
-		
 		//compute heading
-		if (dY <= 0 && dX < 0) { //ok
-			heading = -(Math.PI/2.0 + Math.atan(dX/dY)); //isn't it dX/dY ?
-			//heading = -(Math.PI - Math.atan(dX/dY));
+		if (dY >= 0) { //ok
+			heading = Math.atan(dX/dY); //isn't it dX/dY ?
 		}
-		else if (dY > 0 && dX <= 0) { //ok
-			heading = 3.0*Math.PI/2.0 - Math.atan(dY/dX);
-			//heading = -(Math.atan(dX/dY));
+		else if (dY < 0) { //ok
+			heading = Math.PI + Math.atan(dX/dY);
 		}
-		else if (dY < 0 && dX >= 0) { //ok
-			heading = -(3.0*Math.PI/2.0 - Math.atan(dY/dX));
-			//heading = (Math.PI - Math.atan(dX/dY));
-		}
-		else if(dY >= 0 && dX > 0) {		//ok
-			heading = Math.PI/2.0 - Math.atan(dY/dX);
-			//heading = (Math.atan(dX/dY));
-		}
-		
-		//convert negative heading to positive 
-		if (heading < 0) {
-			heading += 2 * Math.PI;
-		}
-		
-		//System.out.println("\n\n\n\n\n\nheading: " + heading);
+
+		// wrap around 2pi
+		if(heading > 2 * Math.PI) heading -= 2 * Math.PI;
+		System.out.println("\n\n\n\n\n\n\nheading: " + (int)Math.toDegrees(heading));
 		
 		// reset the motors
 		for (EV3LargeRegulatedMotor motor : new EV3LargeRegulatedMotor[] {leftMotor, rightMotor}) {
@@ -86,14 +72,15 @@ public class Navigation implements UltrasonicController{
 	void turnTo(double theta) {
 
 		double dTheta = theta - odo.getTheta();
-		System.out.println("\n\n\n\n\n\ndtheta: " + dTheta);
+		if(dTheta < 0) dTheta += 2 * Math.PI;
+		//System.out.println("\n\n\n\n\n\ndtheta: " + dTheta);
 		
 		if (dTheta > Math.PI) {
-			dTheta = Math.abs(dTheta - 2 * Math.PI);
-			turn(dTheta * 180.0 / Math.PI, "left");
+			dTheta = 2* Math.PI - dTheta;
+			turn(Math.toDegrees(dTheta), "left");
 		}
 		else {
-			turn(dTheta * 180.0 / Math.PI, "right");
+			turn(Math.toDegrees(dTheta), "right");
 		}
 		
 	}

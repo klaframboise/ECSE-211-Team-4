@@ -11,12 +11,14 @@ public class NavigationDisplay extends Thread {
 	private Odometer odometer;
 	private Navigation nav;
 	private TextLCD t;
+	private ObstacleAvoidanceController oa;
 
 	// constructor
-	public NavigationDisplay(Odometer odometer, Navigation nav, TextLCD t) {
+	public NavigationDisplay(Odometer odometer, Navigation nav, ObstacleAvoidanceController oa, TextLCD t) {
 		this.odometer = odometer;
 		this.nav = nav;
 		this.t = t;
+		this.oa = oa;
 	}
 
 	// run method (required for Thread)
@@ -36,6 +38,7 @@ public class NavigationDisplay extends Thread {
 			t.drawString("T:              ", 0, 2);
 			t.drawString("Way-X:              ", 0, 3);
 			t.drawString("Way-Y:              ", 0, 4);
+			t.drawString("Dist:" + oa.getDistance() , 0, 5);
 
 			// get the odometry information
 			odometer.getPosition(position, new boolean[] {true, true, true});

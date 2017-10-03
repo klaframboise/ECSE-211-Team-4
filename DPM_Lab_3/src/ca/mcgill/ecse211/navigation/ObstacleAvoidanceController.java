@@ -19,6 +19,7 @@ public class ObstacleAvoidanceController extends Thread {
 	EV3LargeRegulatedMotor sensorMotor, rightMotor, leftMotor;
 	private boolean isAvoiding;
 	private Navigation nav;
+	private int distance;
 
 	public ObstacleAvoidanceController(EV3LargeRegulatedMotor sensorMotor, EV3LargeRegulatedMotor rightMotor, EV3LargeRegulatedMotor leftMotor, Navigation nav, SampleProvider us, float[] usData) {
 		this.us = us;
@@ -27,11 +28,12 @@ public class ObstacleAvoidanceController extends Thread {
 		this.rightMotor = rightMotor;
 		this.leftMotor = leftMotor;
 		this.nav = nav;
+		distance = 0;
 	}
 
 	public void run() {
 
-		int distance, motorCorrection, dirModifier = 1;
+		int motorCorrection, dirModifier = 1;
 
 		while(true) {
 
@@ -121,5 +123,9 @@ public class ObstacleAvoidanceController extends Thread {
 		if (correction >= NavigationLab.FORWARD_SPEED) correction = MAXCORRECTION;
 		//if(correction < 0) correction = 0;
 		return correction;
+	}
+
+	public int getDistance() {
+		return distance;
 	}
 }
