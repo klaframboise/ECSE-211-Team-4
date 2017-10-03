@@ -83,6 +83,8 @@ public class ObstacleAvoidanceController extends Thread {
 				sensorMotor.rotateTo(NAV_SENSOR_ANGLE);
 				isAvoiding = false;
 				nav.resume();
+				// might get stuck after this line because it does not return immediately if that's the case
+				// the solution would be to make Navigation a Thread
 			}
 			
 			// sleep for 50ms
