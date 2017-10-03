@@ -6,11 +6,7 @@ import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
-public class Navigation implements UltrasonicController {
-	
-	/* Constants */
-	private static final int FORWARD_SPEED = 250;
-	private static final int ROTATE_SPEED = 150;
+public class Navigation implements UltrasonicController{
 	
 	private Odometer odo;
 	private EV3LargeRegulatedMotor leftMotor, rightMotor, sensorMotor;
@@ -32,9 +28,10 @@ public class Navigation implements UltrasonicController {
 	
 	void travelTo(double x, double y) {
 		
+		// if currently navigating, don't change destination waypoint
+		waypointX = (isNavigating())? waypointX : x;
+		waypointY = (isNavigating())? waypointY : y;
 		isNavigating = true;
-		waypointX = x;
-		waypointY = y;
 		
 		double dX = x - odo.getX();
 		double dY = y - odo.getY();
@@ -79,8 +76,8 @@ public class Navigation implements UltrasonicController {
 		
 		//travel to x,y
 		int rotateAngle = convertDistance(NavigationLab.WHEEL_RADIUS, distance);
-		leftMotor.setSpeed(FORWARD_SPEED);
-		rightMotor.setSpeed(FORWARD_SPEED);
+		leftMotor.setSpeed(NavigationLab.FORWARD_SPEED);
+		rightMotor.setSpeed(NavigationLab.FORWARD_SPEED);
 		leftMotor.rotate(rotateAngle, true);
 		rightMotor.rotate(rotateAngle, false);
 		isNavigating = false;
@@ -111,8 +108,8 @@ public class Navigation implements UltrasonicController {
 		int distance = convertAngle(NavigationLab.WHEEL_RADIUS, NavigationLab.TRACK, dTheta);
 		
 		// set motor speed
-		leftMotor.setSpeed(ROTATE_SPEED);
-		rightMotor.setSpeed(ROTATE_SPEED);
+		leftMotor.setSpeed(NavigationLab.ROTATE_SPEED);
+		rightMotor.setSpeed(NavigationLab.ROTATE_SPEED);
 		
 		switch (direction) {
 		case "left" :
@@ -130,6 +127,15 @@ public class Navigation implements UltrasonicController {
 		return isNavigating;
 	}
 	
+	void pause() {
+		leftMotor.stop(true);
+		rightMotor.stop(false);
+	}
+	
+	void resume() {
+		travelTo(waypointX, waypointY);
+	}
+	
 	/**
 	 * From Lab 2 sample code
 	 */
@@ -143,32 +149,24 @@ public class Navigation implements UltrasonicController {
 		return convertDistance(radius, Math.PI * width * angle / 360.0);
 	}
 
-	@Override
-	public void processUSData(int distance) {
-		
-		if(distance < 20) {
-			leftMotor.stop(true);
-			rightMotor.stop(true);
-			Sound.beep();
-			TextLCD t = LocalEV3.get().getTextLCD();
-			t.drawString("Obstacle encountered", 0, 0);
-			Button.waitForAnyPress();
-			System.exit(0);
-		}
-		
-	}
-
-	@Override
-	public int readUSDistance() {
-		return this.distance;
-	}
-
 	public double getWaypointX() {
 		return waypointX;
 	}
 
 	public double getWaypointY() {
 		return waypointY;
+	}
+
+	@Override
+	public void processUSData(int distance) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public int readUSDistance() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 }

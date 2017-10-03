@@ -34,8 +34,8 @@ public class UltrasonicPoller extends Thread {
 		int distance;
 		while (true) {
 			
-			for(int i = 0; i < usData.length; i++) {
-				us.fetchSample(usData, i); // acquire data
+			for(int i = 0; i < usData.length; i+= us.sampleSize()) {
+				us.fetchSample(usData, i * us.sampleSize()); // acquire data
 			}
 			Arrays.sort(usData);	// sort array
 			distance = (int) ((usData[(usData.length/2)-1] + usData[usData.length/2]) / 2.0 * 100.0); // return median

@@ -11,6 +11,8 @@ import lejos.robotics.SampleProvider;
 
 public class NavigationLab {
 
+	public static final int FORWARD_SPEED = 250;
+	public static final int ROTATE_SPEED = 150;
 	public static final double WHEEL_RADIUS = 2.1;
 	public static final double TRACK = 13.5;
 	public static final int SAMPLE_SIZE = 10;
@@ -45,12 +47,16 @@ public class NavigationLab {
 		// start odometer and display
 
 		Odometer odo = new Odometer(leftMotor, rightMotor);
+		OdometryCorrection correction = new OdometryCorrection(odo);
 		Navigation nav = new Navigation(odo, leftMotor, rightMotor, sensorMotor);
-		usPoller = new UltrasonicPoller(usDistance, usData, nav);
-		NavigationDisplay odoDisplay = new NavigationDisplay(odo, nav, t);
+		NavigationDisplay navDisplay = new NavigationDisplay(odo, nav, t);
+		ObstacleAvoidanceController cont = new ObstacleAvoidanceController(sensorMotor, rightMotor, leftMotor, nav, usDistance, usData);
 		
 		odo.start();
-		odoDisplay.start();
+		// correction not required, may be removed if causing trouble
+		correction.start();
+		cont.start();
+		navDisplay.start();
 		//System.out.println("odo running");
 		// navigate to waypoints
 		for(int i = 0; i < WAYPOINTS.length; i += 2) {
