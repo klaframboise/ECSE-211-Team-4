@@ -16,12 +16,13 @@ public class NavigationLab {
 	public static final int SAMPLE_SIZE = 10;
 	public static final double GRID_SIZE = 30.48;
 	//private static final int[] WAYPOINTS = {2,1,1,1,1,2,2,0};	//input as {x1, y1, x2, y2, ..., xn, yn}
-	private static final int[] WAYPOINTS = {-1,1,0,0};
+	private static final int[] WAYPOINTS = {2,2,2,3,2,4,1,1,0,0};
 	
 	private static final Port usPort = LocalEV3.get().getPort("S1");
 	private static final EV3LargeRegulatedMotor leftMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
 	private static final EV3LargeRegulatedMotor rightMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
-
+	private static final EV3LargeRegulatedMotor sensorMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("C"));
+			
 	public static void main(String[] args) {
 
 		@SuppressWarnings("resource") // Because we don't bother to close this resource
@@ -30,7 +31,7 @@ public class NavigationLab {
 		// this instance
 		float[] usData = new float[usDistance.sampleSize() * SAMPLE_SIZE]; // usData is the buffer in which data are
 		// returned
-		
+		UltrasonicPoller usPoller = null;
 		TextLCD t = LocalEV3.get().getTextLCD();
 		
 		// clear the display
@@ -38,10 +39,14 @@ public class NavigationLab {
 		t.drawString("Press any button", 0, 0);
 		t.drawString("    to start    ", 0, 1);
 		Button.waitForAnyPress();
+		
+		
 		//System.out.println("\n\nbutton pressed");
 		// start odometer and display
+
 		Odometer odo = new Odometer(leftMotor, rightMotor);
-		Navigation nav = new Navigation(odo, leftMotor, rightMotor);
+		Navigation nav = new Navigation(odo, leftMotor, rightMotor, sensorMotor);
+		usPoller = new UltrasonicPoller(usDistance, usData, nav);
 		NavigationDisplay odoDisplay = new NavigationDisplay(odo, nav, t);
 		
 		odo.start();

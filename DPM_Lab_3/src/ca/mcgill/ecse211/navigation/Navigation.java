@@ -13,18 +13,21 @@ public class Navigation implements UltrasonicController {
 	private static final int ROTATE_SPEED = 150;
 	
 	private Odometer odo;
-	private EV3LargeRegulatedMotor leftMotor, rightMotor;
+	private EV3LargeRegulatedMotor leftMotor, rightMotor, sensorMotor;
 	private boolean isNavigating;
 	private double waypointX;
 	private double waypointY;
+	private int distance;
 	
-	public Navigation(Odometer odo, EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor) {
+	public Navigation(Odometer odo, EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor, EV3LargeRegulatedMotor sensorMotor){
 		this.odo = odo;
 		this.leftMotor = leftMotor;
 		this.rightMotor = rightMotor;
+		this.sensorMotor = sensorMotor;
 		isNavigating = false;
 		waypointX = 0;
 		waypointY = 0;
+		sensorMotor.setSpeed(50);
 	}
 	
 	void travelTo(double x, double y) {
@@ -41,7 +44,7 @@ public class Navigation implements UltrasonicController {
 		
 		//compute heading
 		if (dY <= 0 && dX < 0) { //ok
-			heading = -(Math.PI/2.0 + Math.atan(dY/dX)); //isn't it dX/dY ?
+			heading = -(Math.PI/2.0 + Math.atan(dX/dY)); //isn't it dX/dY ?
 			//heading = -(Math.PI - Math.atan(dX/dY));
 		}
 		else if (dY > 0 && dX <= 0) { //ok
@@ -50,7 +53,7 @@ public class Navigation implements UltrasonicController {
 		}
 		else if (dY < 0 && dX >= 0) { //ok
 			heading = -(3.0*Math.PI/2.0 - Math.atan(dY/dX));
-			//heading = (Math.PI - Math.atan(dX/dY);
+			//heading = (Math.PI - Math.atan(dX/dY));
 		}
 		else if(dY >= 0 && dX > 0) {		//ok
 			heading = Math.PI/2.0 - Math.atan(dY/dX);
@@ -80,7 +83,6 @@ public class Navigation implements UltrasonicController {
 		rightMotor.setSpeed(FORWARD_SPEED);
 		leftMotor.rotate(rotateAngle, true);
 		rightMotor.rotate(rotateAngle, false);
-		
 		isNavigating = false;
 	}
 	
@@ -158,8 +160,7 @@ public class Navigation implements UltrasonicController {
 
 	@Override
 	public int readUSDistance() {
-		// TODO Auto-generated method stub
-		return 0;
+		return this.distance;
 	}
 
 	public double getWaypointX() {
