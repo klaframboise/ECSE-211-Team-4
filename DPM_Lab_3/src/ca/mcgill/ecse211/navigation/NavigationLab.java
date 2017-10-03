@@ -17,8 +17,6 @@ public class NavigationLab {
 	public static final double TRACK = 13.5;
 	public static final int SAMPLE_SIZE = 10;
 	public static final double GRID_SIZE = 30.48;
-	private static final int[] WAYPOINTS = {0,1,1,2,1,0,2,1,2,2};	//input as {x1, y1, x2, y2, ..., xn, yn}
-	//private static final int[] WAYPOINTS = {-1,-1};
 	
 	private static final Port usPort = LocalEV3.get().getPort("S1");
 	private static final EV3LargeRegulatedMotor leftMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
@@ -48,7 +46,7 @@ public class NavigationLab {
 
 		Odometer odo = new Odometer(leftMotor, rightMotor);
 		//OdometryCorrection correction = new OdometryCorrection(odo);
-		Navigation nav = new Navigation(odo, leftMotor, rightMotor, sensorMotor);
+		Navigation nav = new Navigation(odo, leftMotor, rightMotor);
 		ObstacleAvoidanceController cont = new ObstacleAvoidanceController(sensorMotor, rightMotor, leftMotor, nav, usDistance, usData);
 		NavigationDisplay navDisplay = new NavigationDisplay(odo, nav, cont, t);
 		
@@ -56,19 +54,8 @@ public class NavigationLab {
 		// correction not required, may be removed if causing trouble
 		//correction.start();
 		cont.start();
+		nav.start();
 		navDisplay.start();
-		
-		//System.out.println("odo running");
-		// navigate to waypoints
-		for(int i = 0; i < WAYPOINTS.length; i += 2) {
-			nav.travelTo(WAYPOINTS[i] * GRID_SIZE, WAYPOINTS[i+1] * GRID_SIZE);
-			
-			// wait for navigation to end
-			while(nav.isNavigating());
-		}
-		
-		System.exit(0);
-
 
 	}
 

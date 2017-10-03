@@ -20,6 +20,7 @@ public class ObstacleAvoidanceController extends Thread {
 	private boolean isAvoiding;
 	private Navigation nav;
 	private int distance;
+	private Object lock;
 
 	public ObstacleAvoidanceController(EV3LargeRegulatedMotor sensorMotor, EV3LargeRegulatedMotor rightMotor, EV3LargeRegulatedMotor leftMotor, Navigation nav, SampleProvider us, float[] usData) {
 		this.us = us;
@@ -29,6 +30,9 @@ public class ObstacleAvoidanceController extends Thread {
 		this.leftMotor = leftMotor;
 		this.nav = nav;
 		distance = 0;
+		lock = new Object();
+		
+		sensorMotor.setSpeed(50);
 	}
 
 	public void run() {
@@ -36,64 +40,64 @@ public class ObstacleAvoidanceController extends Thread {
 		int motorCorrection, dirModifier = 1;
 
 		while(true) {
+			synchronized(lock) {
+				// get distance measured by sensor
+				distance = getFilteredDistance();
 
-			// get distance measured by sensor
-			distance = getFilteredDistance();
-
-			if(!isAvoiding && distance < (BAND_CENTER - BAND_WIDTH)) {
-				// enter avoiding mode
-				nav.pause();
-				sensorMotor.rotateTo(NAV_SENSOR_ANGLE + 45);
-				if(getFilteredDistance() > SAFE_DISTANCE) {
-					sensorMotor.rotateTo(NAV_SENSOR_ANGLE - 45);
-					dirModifier = -1;
+				if(!isAvoiding && distance < (BAND_CENTER - BAND_WIDTH)) {
+					nav.pause();
+					sensorMotor.rotateTo(NAV_SENSOR_ANGLE + 45, false);
+					if(getFilteredDistance() > SAFE_DISTANCE) {
+						sensorMotor.rotateTo(NAV_SENSOR_ANGLE - 45, false);
+						dirModifier = -1;
+					}
+					else {
+						dirModifier = 1;
+					}
+					isAvoiding = true;
+					continue;
 				}
-				else {
-					dirModifier = 1;
-				}
-				isAvoiding = true;
-				continue;
-			}
 
-			//avoid by following obstacle
-			if(isAvoiding) {
-				motorCorrection = calculateCorrection(distance - BAND_CENTER);
-				// machine outside of band center, accelerate outside wheel
-				if(distance > BAND_CENTER + BAND_WIDTH) {
-					rightMotor.setSpeed(NavigationLab.FORWARD_SPEED + dirModifier * motorCorrection);
-					leftMotor.setSpeed(NavigationLab.FORWARD_SPEED - dirModifier * motorCorrection);
-					leftMotor.forward();
-					rightMotor.forward();
-					// machine inside of band center, accelerate inside wheel
-				} else if(distance < BAND_CENTER - BAND_WIDTH) {
-					rightMotor.setSpeed(NavigationLab.FORWARD_SPEED - dirModifier * motorCorrection);
-					leftMotor.setSpeed(NavigationLab.FORWARD_SPEED + dirModifier * motorCorrection);
-					leftMotor.forward(); 
-					rightMotor.forward();
-					// machine within band
-				} else {
-					rightMotor.setSpeed(NavigationLab.FORWARD_SPEED);
-					rightMotor.setSpeed(NavigationLab.FORWARD_SPEED);
-					leftMotor.forward();
-					rightMotor.forward();
+				//avoid by following obstacle
+				if(isAvoiding) {
+					motorCorrection = calculateCorrection(distance - BAND_CENTER);
+					// machine outside of band center, accelerate outside wheel
+					if(distance > BAND_CENTER + BAND_WIDTH) {
+						rightMotor.setSpeed(NavigationLab.FORWARD_SPEED + dirModifier * motorCorrection);
+						leftMotor.setSpeed(NavigationLab.FORWARD_SPEED - dirModifier * motorCorrection);
+						leftMotor.forward();
+						rightMotor.forward();
+						// machine inside of band center, accelerate inside wheel
+					} else if(distance < BAND_CENTER - BAND_WIDTH) {
+						rightMotor.setSpeed(NavigationLab.FORWARD_SPEED - dirModifier * motorCorrection);
+						leftMotor.setSpeed(NavigationLab.FORWARD_SPEED + dirModifier * motorCorrection);
+						leftMotor.forward(); 
+						rightMotor.forward();
+						// machine within band
+					} else {
+						rightMotor.setSpeed(NavigationLab.FORWARD_SPEED);
+						rightMotor.setSpeed(NavigationLab.FORWARD_SPEED);
+						leftMotor.forward();
+						rightMotor.forward();
+					}
 				}
-			}
 
-			// if distance is large enough, could be done avoiding
-			// try navigating again
-			if(isAvoiding && distance > SAFE_DISTANCE) {
-				sensorMotor.rotateTo(NAV_SENSOR_ANGLE);
-				isAvoiding = false;
-				nav.resume();
-				// might get stuck after this line because it does not return immediately if that's the case
-				// the solution would be to make Navigation a Thread
+				// if distance is large enough, could be done avoiding
+				// try navigating again
+				if(isAvoiding && distance > SAFE_DISTANCE) {
+					rightMotor.stop(true);
+					leftMotor.stop(false);
+					sensorMotor.rotateTo(NAV_SENSOR_ANGLE, false);
+					isAvoiding = false;
+					nav.resumeNav();
+				}
+
+				// sleep for 50ms
+				try {
+					Thread.sleep(50);
+				} catch (Exception e) {
+				} 
 			}
-			
-			// sleep for 50ms
-			try {
-				Thread.sleep(50);
-			} catch (Exception e) {
-			} 
 		}
 
 	}

@@ -39,6 +39,7 @@ public class NavigationDisplay extends Thread {
 			t.drawString("Way-X:              ", 0, 3);
 			t.drawString("Way-Y:              ", 0, 4);
 			t.drawString("Dist:" + oa.getDistance() , 0, 5);
+			t.drawString("Avoiding:" + nav.isAvoiding() , 0, 6);
 
 			// get the odometry information
 			odometer.getPosition(position, new boolean[] {true, true, true});
