@@ -2,6 +2,7 @@ package ca.mcgill.ecse211.navigation;
 
 import java.util.Arrays;
 
+import lejos.hardware.Sound;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.robotics.SampleProvider;
 
@@ -9,9 +10,7 @@ public class ObstacleAvoidanceController extends Thread {
 
 	private static final int BAND_CENTER = 10;
 	private static final int BAND_WIDTH = 5;
-	private static final double PROP_CONSTANT = 2.5;
-	private static final int MAXCORRECTION= 50;
-	private static final int SAFE_DISTANCE = 45; //distance at which to resume navigation
+	private static final int CORRECTION = 75;
 	private static final int NAV_SENSOR_ANGLE = 0;
 
 	private SampleProvider us;
@@ -40,9 +39,8 @@ public class ObstacleAvoidanceController extends Thread {
 
 	public void run() {
 
-		int motorCorrection, dirModifier = -1;
+		int dirModifier = -1;
 		double startAvoidHeading = 0;
-		motorCorrection = 100;
 
 		while(true) {
 			synchronized(lock) {
@@ -53,12 +51,20 @@ public class ObstacleAvoidanceController extends Thread {
 					nav.pause();
 					sensorMotor.rotateTo(NAV_SENSOR_ANGLE + 90, false);
 					try {
-						Thread.sleep(100);
+						Sound.beep();
+						Thread.sleep(200);
+						Sound.beep();
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 					nav.turn(90, "left");
+					try {
+						Thread.sleep(200);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					startAvoidHeading = odo.getTheta();
 					isAvoiding = true;
 					continue;
@@ -68,17 +74,17 @@ public class ObstacleAvoidanceController extends Thread {
 				//avoid by following obstacle
 				if(isAvoiding) {
 					while(Math.abs(odo.getTheta() - startAvoidHeading) < Math.PI ) {
-						//motorCorrection = calculateCorrection(distance - BAND_CENTER);
+						distance = getFilteredDistance();
 						// machine outside of band center, accelerate outside wheel
 						if(distance > BAND_CENTER + BAND_WIDTH) {
-							rightMotor.setSpeed(NavigationLab.FORWARD_SPEED + dirModifier * motorCorrection);
-							leftMotor.setSpeed(NavigationLab.FORWARD_SPEED - dirModifier * motorCorrection);
+							rightMotor.setSpeed(NavigationLab.FORWARD_SPEED + dirModifier * CORRECTION);
+							leftMotor.setSpeed(NavigationLab.FORWARD_SPEED - dirModifier * CORRECTION);
 							leftMotor.forward();
 							rightMotor.forward();
 							// machine inside of band center, accelerate inside wheel
 						} else if(distance < BAND_CENTER - BAND_WIDTH) {
-							rightMotor.setSpeed(NavigationLab.FORWARD_SPEED - dirModifier * motorCorrection);
-							leftMotor.setSpeed(NavigationLab.FORWARD_SPEED + dirModifier * motorCorrection);
+							rightMotor.setSpeed(NavigationLab.FORWARD_SPEED - dirModifier * CORRECTION);
+							leftMotor.setSpeed(NavigationLab.FORWARD_SPEED + dirModifier * CORRECTION);
 							leftMotor.forward(); 
 							rightMotor.forward();
 							// machine within band
@@ -88,7 +94,14 @@ public class ObstacleAvoidanceController extends Thread {
 							leftMotor.forward();
 							rightMotor.forward();
 						}
+						try {
+							Thread.sleep(25);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 					}
+					if(Math.abs(odo.getTheta() - startAvoidHeading) < Math.PI) Sound.buzz();
 				}
 
 				// if distance is large enough, could be done avoiding
@@ -127,16 +140,6 @@ public class ObstacleAvoidanceController extends Thread {
 		}
 		Arrays.sort(usData);	// sort array
 		return (int) ((usData[(usData.length/2)-1] + usData[usData.length/2]) / 2.0 * 100.0); // return median
-	}
-
-	private int calculateCorrection(int diff) {
-		int correction;
-		// take absolute value
-		if (diff<0) diff = -diff;
-		correction = (int) (PROP_CONSTANT*(double)diff);
-		if (correction >= NavigationLab.FORWARD_SPEED) correction = MAXCORRECTION;
-		//if(correction < 0) correction = 0;
-		return correction;
 	}
 
 	public int getDistance() {

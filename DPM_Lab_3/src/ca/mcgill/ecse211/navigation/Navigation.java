@@ -132,7 +132,7 @@ public class Navigation extends Thread {
 
 	void pause() {
 		leftMotor.stop(true);
-		rightMotor.stop(false);
+		rightMotor.stop(true);
 
 		isAvoiding = true;
 		
