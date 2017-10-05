@@ -25,7 +25,7 @@ public class UltrasonicLocalizer {
 	private void sweep() {
 
 		// compute wheel rotation amount
-		int rotationAngle = convertAngle(LocalizationLab.WHEEL_RADIUS, LocalizationLab.TRACK, 360.0/SWEEP_SIZE);
+		int rotationAngle = LocalizationLab.convertAngle(LocalizationLab.WHEEL_RADIUS, LocalizationLab.TRACK, 360.0/SWEEP_SIZE);
 
 		leftMotor.setSpeed(LocalizationLab.ROTATE_SPEED);
 		rightMotor.setSpeed(LocalizationLab.ROTATE_SPEED);
@@ -64,18 +64,5 @@ public class UltrasonicLocalizer {
 		}
 		Arrays.sort(usData);	// sort array
 		return (int) ((usData[(usData.length/2)-1] + usData[usData.length/2]) / 2.0 * 100.0); // return median
-	}
-
-	/**
-	 * From Lab 2 sample code
-	 */
-	private static int convertDistance(double radius, double distance) {
-		return (int) ((180.0 * distance) / (Math.PI * radius));
-	}
-	/**
-	 * From Lab 2 sample code
-	 */
-	private static int convertAngle(double radius, double width, double angle) {
-		return convertDistance(radius, Math.PI * width * angle / 360.0);
 	}
 }
