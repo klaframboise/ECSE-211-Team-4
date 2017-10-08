@@ -38,7 +38,7 @@ public class LocalizationLab {
 		float[] lightData = new float[colorSampler.sampleSize() * SAMPLE_SIZE];
 		odo = new Odometer(leftMotor, rightMotor);
 		OdometryDisplay display = new OdometryDisplay(odo, t);
-		UltrasonicLocalizer usLocalizer = new UltrasonicLocalizer(usDistance, usData, leftMotor, rightMotor);
+		UltrasonicLocalizer usLocalizer = new UltrasonicLocalizer(usDistance, usData, leftMotor, rightMotor, odo);
 		LightLocalizer lightLocalizer = new LightLocalizer(colorSampler, lightData, leftMotor, rightMotor);
 
 		do {
@@ -62,6 +62,8 @@ public class LocalizationLab {
 		// localize according to user choice
 		if(buttonChoice == Button.ID_LEFT) usLocalizer.fallingEdge(); 
 		else usLocalizer.risingEdge();
+		//TODO Tell navigation to orient to 0 degrees using odo
+		
 		// wait for any press to begin light localization
 		Button.waitForAnyPress();
 		lightLocalizer.localize();
