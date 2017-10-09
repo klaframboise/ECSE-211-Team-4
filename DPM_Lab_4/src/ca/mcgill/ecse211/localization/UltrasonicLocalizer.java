@@ -2,6 +2,7 @@ package ca.mcgill.ecse211.localization;
 
 import java.util.Arrays;
 
+import lejos.hardware.Sound;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.robotics.SampleProvider;
 
@@ -13,7 +14,7 @@ public class UltrasonicLocalizer {
 	private EV3LargeRegulatedMotor leftMotor, rightMotor;
 	private float[] sweepData;
 	private double alphaAngle, betaAngle, deltaTheta, theta;
-	private boolean clockwise = true;
+	private boolean goingClockwise = true;
 	private float currentDistance;
 	private Odometer odo;
 
@@ -28,139 +29,198 @@ public class UltrasonicLocalizer {
 
 	}
 
-	private void sweep(boolean clockwise, int sweepSize) {
-		// compute wheel rotation amount
-		int rotationAngle = LocalizationLab.convertAngle(LocalizationLab.WHEEL_RADIUS, LocalizationLab.TRACK, 360.0/sweepSize);
-
-		//for(int i = 0; i < SWEEP_SIZE; i++) {
-
-		// gather us data at current heading
-		//sweepData[i] = getFilteredDistance();
-
-		// position robot for next measurement
-		if(clockwise) {
-			leftMotor.rotate(rotationAngle, true);
-			rightMotor.rotate(-rotationAngle, false);
-		}else {
-			leftMotor.rotate(-rotationAngle, true);
-			rightMotor.rotate(rotationAngle, false);
-		}
-
-		//}
-	}
+	//	private void sweep(boolean clockwise, int sweepSize) {
+	//		// compute wheel rotation amount
+	//		int rotationAngle = LocalizationLab.convertAngle(LocalizationLab.WHEEL_RADIUS, LocalizationLab.TRACK, 360.0/sweepSize);
+	//
+	//		//for(int i = 0; i < sweepSize; i++) {
+	//
+	//		// gather us data at current heading
+	//		//sweepData[i] = getFilteredDistance();
+	//
+	//		// position robot for next measurement
+	//		if(clockwise) {
+	//			leftMotor.rotate(rotationAngle, true);
+	//			rightMotor.rotate(-rotationAngle, false);
+	//		}else {
+	//			leftMotor.rotate(-rotationAngle, true);
+	//			rightMotor.rotate(rotationAngle, false);
+	//		}
+	//
+	//		//}
+	//	}
 
 	public void fallingEdge() {
 		leftMotor.setSpeed(LocalizationLab.ROTATE_SPEED);
 		rightMotor.setSpeed(LocalizationLab.ROTATE_SPEED);
 		currentDistance = getFilteredDistance();
-		if(currentDistance > 30) { //in case we start away from the walls
-			while(currentDistance > 30  && clockwise) {
+		if(currentDistance < 30) { //in case we start facing the walls
+			while(currentDistance < 30) { //then move away from the walls in a clockwise manner
 				currentDistance = getFilteredDistance();
-				sweep(clockwise, 120);
+				leftMotor.forward();
+				rightMotor.backward();
 			}
-			clockwise = false;
-			alphaAngle = odo.getTheta();
-			sweep(clockwise, 4);
 			try {
+				Thread.sleep(3000); //leave some time for the robot to move away so not to disturb the sensor
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			currentDistance = getFilteredDistance(); 
+			while(currentDistance > 30  && goingClockwise) { //now look for the closest wall clockwise
+				currentDistance = getFilteredDistance();
+				//sweep(clockwise, 72);
+				leftMotor.forward();
+				rightMotor.backward();
+			}
+			leftMotor.setSpeed(0); //stop and record the alpha angle once detected first falling edge
+			rightMotor.setSpeed(0);
+			goingClockwise = false;
+			alphaAngle = LocalizationLab.getOdo().getTheta();
+			leftMotor.setSpeed(LocalizationLab.ROTATE_SPEED); //go counter counterclockwise
+			rightMotor.setSpeed(LocalizationLab.ROTATE_SPEED);
+			leftMotor.backward();
+			rightMotor.forward();
+			Sound.beep();
+			try {											//keep going counterclockwise for at least 3 sec
 				Thread.sleep(3000); //give time for motors to move away from back wall
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			currentDistance = getFilteredDistance();
-			while(currentDistance > 30 && !clockwise) { //we're now looking for another falling edge on the other side
+			while(currentDistance > 30 && !goingClockwise) { //we're now looking for another falling edge on the other side
 				currentDistance = getFilteredDistance();
-				sweep(clockwise, 120);
+				//sweep(clockwise, 72);
+				leftMotor.backward(); //we're going counterclockwise
+				rightMotor.forward();
 			}
-			betaAngle = odo.getTheta();
-		} else {
-			while(currentDistance < 30) {
-				sweep(clockwise, 4);
-			}
-			try {
-				Thread.sleep(3000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			currentDistance = getFilteredDistance(); //same code as above
-			while(currentDistance > 30  && clockwise) {
+			leftMotor.setSpeed(0); //stop motors and record beta angle once found the second falling edge
+			rightMotor.setSpeed(0);
+			betaAngle = LocalizationLab.getOdo().getTheta();
+		} else { //this is in case we start away from the walls
+			while(currentDistance > 30  && goingClockwise) { //look for the closest wall clockwise
 				currentDistance = getFilteredDistance();
-				sweep(clockwise, 120);
+				//sweep(clockwise, 72);
+				leftMotor.forward();
+				rightMotor.backward();
 			}
-			clockwise = false;
-			alphaAngle = odo.getTheta();
-			sweep(clockwise, 4);
+			leftMotor.setSpeed(0); //stop and record the alpha angle once detected first falling edge
+			rightMotor.setSpeed(0);
+			goingClockwise = false;
+			alphaAngle = LocalizationLab.getOdo().getTheta();
+			leftMotor.setSpeed(LocalizationLab.ROTATE_SPEED); //go counter counterclockwise
+			rightMotor.setSpeed(LocalizationLab.ROTATE_SPEED);
+			leftMotor.backward();
+			rightMotor.forward();
+			//sweep(clockwise, 4);
 			try {
 				Thread.sleep(3000); //give time for motors to move away from back wall
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+			Sound.beep();
 			currentDistance = getFilteredDistance();
-			while(currentDistance > 30 && !clockwise) { //we're now looking for another falling edge on the other side
+			while(currentDistance > 30 && !goingClockwise) { //we're now looking for another falling edge on the other side
 				currentDistance = getFilteredDistance();
-				sweep(clockwise, 120);
+				//sweep(clockwise, 72);
+				leftMotor.backward();
+				rightMotor.forward();
 			}
-			betaAngle = odo.getTheta();
+			Sound.beep();
+			leftMotor.setSpeed(0); //stop motors and record beta angle
+			rightMotor.setSpeed(0);
+			leftMotor.forward();
+			rightMotor.backward();
+			betaAngle = LocalizationLab.getOdo().getTheta();
+			Sound.beep();
 		}
-		deltaTheta = Math.PI/4 - (alphaAngle + betaAngle)/2;
-		double currentTheta = odo.getTheta();
-		odo.setTheta(currentTheta + deltaTheta);
-		LocalizationLab.turnTo(0);
+		deltaTheta = (5*Math.PI/4) - ((alphaAngle + betaAngle)/2) - 0.12; //0.1 used for offset
+		double currentTheta = LocalizationLab.getOdo().getTheta();
+		LocalizationLab.getOdo().setTheta(currentTheta + deltaTheta); //correct the odometer's theta value to the correct one
 	}
 
 	public void risingEdge() {
+		leftMotor.setSpeed(LocalizationLab.ROTATE_SPEED);
+		rightMotor.setSpeed(LocalizationLab.ROTATE_SPEED);
 		currentDistance = getFilteredDistance();
 		if(currentDistance < 40) { //in case we start facing walls
-			while(currentDistance < 40 && clockwise) {
+			while(currentDistance < 40 && goingClockwise) { //keep going clockwise until away from the walls
 				currentDistance = getFilteredDistance();
-				sweep(clockwise, 120);
+				//sweep(goingClockwise, 120);
+				leftMotor.forward();
+				rightMotor.backward();
 			}
-			clockwise = false;
-			alphaAngle = odo.getTheta();
-			sweep(clockwise, 4);
+			leftMotor.setSpeed(0);
+			rightMotor.setSpeed(0);
+			goingClockwise = false;
+			alphaAngle = odo.getTheta(); //detected first rising edge and record the alpha angle
+			//sweep(goingClockwise, 4);
+			leftMotor.setSpeed(LocalizationLab.ROTATE_SPEED);
+			rightMotor.setSpeed(LocalizationLab.ROTATE_SPEED);
+			leftMotor.backward();
+			rightMotor.forward();
 			try {
-				Thread.sleep(3000); //wait for robot to stabilize
+				Thread.sleep(2000); //leave time for robot to look at the walls again
 			}catch(InterruptedException e) {
 				e.printStackTrace();
 			}
+			Sound.beep();
 			currentDistance = getFilteredDistance();
-			while(currentDistance < 40 && !clockwise) {
+			while(currentDistance < 40 && !goingClockwise) { //keep going counterclockwise to find second rising edge
 				currentDistance = getFilteredDistance();
-				sweep(clockwise, 120);
+				//sweep(goingClockwise, 120);
+				leftMotor.backward();
+				rightMotor.forward();
 			}
-			betaAngle = odo.getTheta();
+			leftMotor.setSpeed(0); //stop motors
+			rightMotor.setSpeed(0);
+			betaAngle = odo.getTheta(); //record second angle for second rising edge
 		} else {
-			while(currentDistance > 40) {
+			while(currentDistance > 40) { //if we start facing away from the walls
 				currentDistance = getFilteredDistance();
-				sweep(clockwise, 120);
+				//sweep(goingClockwise, 120);
+				leftMotor.forward(); //then keep going clockwise
+				rightMotor.backward();
 			}
 			try {
-				Thread.sleep(3000);
+				Thread.sleep(5000); //give 5sec for the robot to start facing the walls
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			currentDistance = getFilteredDistance();
-			while(currentDistance < 40 && clockwise) {
+			while(currentDistance < 40 && goingClockwise) { //while still facing the walls, keep going clockwise
 				currentDistance = getFilteredDistance();
-				sweep(clockwise, 120);
+				//sweep(goingClockwise, 120);
+				leftMotor.forward();
+				rightMotor.backward();
 			}
-			clockwise = false;
-			alphaAngle = odo.getTheta();
-			sweep(clockwise, 4);
+			leftMotor.setSpeed(0); //stop the motors once we detected first rising edge
+			rightMotor.setSpeed(0);
+			goingClockwise = false;
+			alphaAngle = odo.getTheta(); //record first angle for first rising edge
+			//sweep(goingClockwise, 4);
+			leftMotor.setSpeed(LocalizationLab.ROTATE_SPEED); //go counter clockwise now 
+			rightMotor.setSpeed(LocalizationLab.ROTATE_SPEED);
+			leftMotor.backward();
+			rightMotor.forward();
 			try {
-				Thread.sleep(3000);
+				Thread.sleep(2000); //give robot 3sec to start facing walls again
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			currentDistance = getFilteredDistance();
-			while(currentDistance < 40 && !clockwise) {
+			while(currentDistance < 40 && !goingClockwise) { //keep going counterclockwise until we detect second rising edge
 				currentDistance = getFilteredDistance();
-				sweep(clockwise, 120);
+				//sweep(goingClockwise, 120);
+				leftMotor.backward();
+				rightMotor.forward();
 			}
-			betaAngle = odo.getTheta();
+			leftMotor.setSpeed(0); //stop motors once detected second rising edge
+			rightMotor.setSpeed(0);
+			betaAngle = odo.getTheta(); //record the angle for the second rising edge
 		}
-		deltaTheta = (5*Math.PI)/4 - (alphaAngle + betaAngle)/2;
+		deltaTheta = (5*Math.PI)/4 - (alphaAngle + betaAngle)/2 - 0.2;
 		double currentTheta = odo.getTheta();
-		odo.setTheta(currentTheta + deltaTheta);
+		odo.setTheta(currentTheta + deltaTheta - Math.PI); //TODO recheck value of this
 	}
 
 	/*

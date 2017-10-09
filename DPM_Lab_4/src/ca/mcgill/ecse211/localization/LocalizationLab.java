@@ -1,6 +1,7 @@
 package ca.mcgill.ecse211.localization;
 
 import lejos.hardware.Button;
+import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
@@ -13,7 +14,7 @@ import lejos.robotics.SampleProvider;
 public class LocalizationLab {
 
 	public static final int FORWARD_SPEED = 100;
-	public static final int ROTATE_SPEED = 150;
+	public static final int ROTATE_SPEED = 80;
 	public static final double WHEEL_RADIUS = 2.1;
 	public static final double TRACK = 13.95;
 	public static final int SAMPLE_SIZE = 10;
@@ -60,10 +61,14 @@ public class LocalizationLab {
 		display.start();
 		
 		// localize according to user choice
-		/*if(buttonChoice == Button.ID_LEFT) usLocalizer.fallingEdge(); 
-		else usLocalizer.risingEdge();*/
+		if(buttonChoice == Button.ID_LEFT) {
+			usLocalizer.fallingEdge(); 
+		}else {
+			usLocalizer.risingEdge();
+		}
 		//TODO Tell navigation to orient to 0 degrees using odo
-		
+		Sound.beep();
+		turnTo(0);
 		// wait for any press to begin light localization
 		Button.waitForAnyPress();
 		lightLocalizer.localize();
