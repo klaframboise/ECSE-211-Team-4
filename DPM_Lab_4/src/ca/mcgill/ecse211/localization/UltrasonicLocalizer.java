@@ -104,6 +104,7 @@ public class UltrasonicLocalizer {
 		deltaTheta = Math.PI/4 - (alphaAngle + betaAngle)/2;
 		double currentTheta = odo.getTheta();
 		odo.setTheta(currentTheta + deltaTheta);
+		LocalizationLab.turnTo(0);
 	}
 
 	public void risingEdge() {

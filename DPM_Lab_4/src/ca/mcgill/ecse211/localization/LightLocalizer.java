@@ -8,7 +8,7 @@ import lejos.robotics.SampleProvider;
 
 public class LightLocalizer {
 
-	private static final float LINE_RED_INTENSITY = 0.25f;
+	private static final float LINE_RED_INTENSITY = 0.35f;
 	//TODO measure this value
 	private static final double LS_TO_CENTER = 9;
 
@@ -39,7 +39,7 @@ public class LightLocalizer {
 
 		// start rotating 360 deg
 		leftMotor.rotate(rotationAngle, true);
-		rightMotor.rotate(rotationAngle, true);
+		rightMotor.rotate(-rotationAngle, true);
 
 		// sample light sensor every 25 ms to detect lines
 		do {
@@ -63,13 +63,14 @@ public class LightLocalizer {
 		double dTheta;
 
 		while(true) {
+			LocalizationLab.turnTo(0);
 			sweep();
 
 			// already in position to localize
 			if(counter == 4) {
 				x = -LS_TO_CENTER * Math.cos((angles[2] - angles[0])/2);	//theta-y is difference in angle between the first and third line crossed
 				y =  -LS_TO_CENTER * Math.cos((angles[3] - angles[1])/2);	//theta-x is difference in angle between the second and fourth line crossed
-				dTheta = -Math.PI/2.0 - angles[2] - (angles[2] - angles[0])/2;
+				dTheta = Math.PI/2.0 - angles[2] - (angles[2] - angles[0])/2;
 				break;
 			}
 			else if(counter == 2) {
@@ -98,22 +99,22 @@ public class LightLocalizer {
 		LocalizationLab.getOdo().setTheta(LocalizationLab.getOdo().getTheta() + dTheta);
 		
 		//travel to 0,0
-		travelTo(0,0);
+		LocalizationLab.travelTo(0,0);
 		//turn to face heading 0deg
-		turnTo(0);
+		LocalizationLab.turnTo(0);
 	}
 
 	private void adjust(char dir) {
 
 		switch(dir) {
 		// head in positive x direction
-		case 'y': turnTo(Math.PI/2.0); break;
-		case 'x': turnTo(0); break;
+		case 'y': LocalizationLab.turnTo(Math.PI/2.0); break;
+		case 'x': LocalizationLab.turnTo(0); break;
 		default: return;
 		}
 
 		// go forward until axis is found
-		while(getRedIntensity() < LINE_RED_INTENSITY) {
+		while(getRedIntensity() > LINE_RED_INTENSITY) {
 			leftMotor.setSpeed(LocalizationLab.FORWARD_SPEED);
 			rightMotor.setSpeed(LocalizationLab.FORWARD_SPEED);
 			
@@ -129,85 +130,9 @@ public class LightLocalizer {
 		}
 		
 		// go 2cm past the line
-		leftMotor.rotate(LocalizationLab.convertDistance(LocalizationLab.WHEEL_RADIUS, 2));
-		rightMotor.rotate(LocalizationLab.convertDistance(LocalizationLab.WHEEL_RADIUS, 2));
+		leftMotor.rotate(LocalizationLab.convertDistance(LocalizationLab.WHEEL_RADIUS, 3.5), true);
+		rightMotor.rotate(LocalizationLab.convertDistance(LocalizationLab.WHEEL_RADIUS, 3.5), false);
 
-	}
-	
-	void travelTo(double x, double y) {
-
-		double dX = x - LocalizationLab.getOdo().getX();
-		double dY = y - LocalizationLab.getOdo().getY();
-		double distance = Math.sqrt(Math.pow(dX, 2) + Math.pow(dY, 2));
-		double heading = 0; 
-
-		//compute heading
-		if (dY >= 0) { //ok
-			heading = Math.atan(dX/dY); //isn't it dX/dY ?
-		}
-		else if (dY < 0) { //ok
-			heading = Math.PI + Math.atan(dX/dY);
-		}
-
-		// wrap around 2pi
-		if(heading > 2 * Math.PI) heading -= 2 * Math.PI;
-
-		// reset the motors
-		for (EV3LargeRegulatedMotor motor : new EV3LargeRegulatedMotor[] {leftMotor, rightMotor}) {
-			motor.stop();
-			motor.setAcceleration(3000);
-		}
-
-		//turn robot to wanted heading 
-		turnTo(heading);
-
-		//travel to x,y
-		int rotateAngle = LocalizationLab.convertDistance(LocalizationLab.WHEEL_RADIUS, distance);
-		leftMotor.setSpeed(LocalizationLab.FORWARD_SPEED);
-		rightMotor.setSpeed(LocalizationLab.FORWARD_SPEED);
-		leftMotor.rotate(rotateAngle, true);
-		rightMotor.rotate(rotateAngle, false);
-	}
-
-	private void turnTo(double theta) {
-
-		double dTheta = theta - LocalizationLab.getOdo().getTheta();
-		if(dTheta < 0) dTheta += 2 * Math.PI;
-		//System.out.println("\n\n\n\n\n\ndtheta: " + dTheta);
-
-		if (dTheta > Math.PI) {
-			dTheta = 2* Math.PI - dTheta;
-			turn(Math.toDegrees(dTheta), "left");
-		}
-		else {
-			turn(Math.toDegrees(dTheta), "right");
-		}
-
-	}
-
-	/**
-	 * Turns in given direction.
-	 * @param dTheta change in heading wanted, in degrees
-	 * @param direction
-	 */
-	private void turn(double dTheta, String direction) {
-
-		int distance = LocalizationLab.convertAngle(LocalizationLab.WHEEL_RADIUS, LocalizationLab.TRACK, dTheta);
-
-		// set motor speed
-		leftMotor.setSpeed(LocalizationLab.ROTATE_SPEED);
-		rightMotor.setSpeed(LocalizationLab.ROTATE_SPEED);
-
-		switch (direction) {
-		case "left" :
-			leftMotor.rotate(-distance, true);
-			rightMotor.rotate(distance, false);
-			break;
-		case "right" :
-			leftMotor.rotate(distance, true);
-			rightMotor.rotate(-distance, false);
-			break;
-		}
 	}
 
 	/**
