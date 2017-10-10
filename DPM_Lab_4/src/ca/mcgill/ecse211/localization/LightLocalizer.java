@@ -8,7 +8,7 @@ import lejos.robotics.SampleProvider;
 
 public class LightLocalizer {
 
-	private static final float LINE_RED_INTENSITY = 0.35f;
+	private static final float LINE_RED_INTENSITY = 0.30f;
 	//TODO measure this value
 	private static final double LS_TO_CENTER = 9;
 
@@ -54,6 +54,8 @@ public class LightLocalizer {
 				}
 			}
 		} while(leftMotor.isMoving() && rightMotor.isMoving() && counter < angles.length);
+		leftMotor.stop(true);
+		rightMotor.stop(true);
 
 	}
 
@@ -69,8 +71,8 @@ public class LightLocalizer {
 			// already in position to localize
 			if(counter == 4) {
 				x = -LS_TO_CENTER * Math.cos((angles[2] - angles[0])/2);	//theta-y is difference in angle between the first and third line crossed
-				y =  -LS_TO_CENTER * Math.cos((angles[3] - angles[1])/2);	//theta-x is difference in angle between the second and fourth line crossed
-				dTheta = Math.PI/2.0 - angles[2] - (angles[2] - angles[0])/2;
+				y =  (-LS_TO_CENTER * Math.cos((angles[3] - angles[1])/2)) - LS_TO_CENTER;	//theta-x is difference in angle between the second and fourth line crossed
+				dTheta = -Math.PI/2.0 - (angles[2] - Math.PI) + (angles[2] - angles[0])/2.0;
 				break;
 			}
 			else if(counter == 2) {
@@ -130,8 +132,8 @@ public class LightLocalizer {
 		}
 		
 		// go 2cm past the line
-		leftMotor.rotate(LocalizationLab.convertDistance(LocalizationLab.WHEEL_RADIUS, 3.5), true);
-		rightMotor.rotate(LocalizationLab.convertDistance(LocalizationLab.WHEEL_RADIUS, 3.5), false);
+		leftMotor.rotate(LocalizationLab.convertDistance(LocalizationLab.WHEEL_RADIUS, 4.5), true);
+		rightMotor.rotate(LocalizationLab.convertDistance(LocalizationLab.WHEEL_RADIUS, 4.5), false);
 
 	}
 

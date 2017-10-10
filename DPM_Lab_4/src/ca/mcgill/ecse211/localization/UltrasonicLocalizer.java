@@ -14,7 +14,7 @@ public class UltrasonicLocalizer {
 	private EV3LargeRegulatedMotor leftMotor, rightMotor;
 	private float[] sweepData;
 	private double alphaAngle, betaAngle, deltaTheta, theta;
-	private boolean goingClockwise = true;
+	private boolean goingClockwise;
 	private float currentDistance;
 	private Odometer odo;
 
@@ -26,6 +26,7 @@ public class UltrasonicLocalizer {
 		this.rightMotor = rightMotor;
 		//sweepData = new float[SWEEP_SIZE];
 		this.odo = odo;
+		goingClockwise = true;
 
 	}
 
@@ -75,7 +76,7 @@ public class UltrasonicLocalizer {
 			leftMotor.setSpeed(0); //stop and record the alpha angle once detected first falling edge
 			rightMotor.setSpeed(0);
 			goingClockwise = false;
-			alphaAngle = LocalizationLab.getOdo().getTheta();
+			alphaAngle = odo.getTheta();
 			leftMotor.setSpeed(LocalizationLab.ROTATE_SPEED); //go counter counterclockwise
 			rightMotor.setSpeed(LocalizationLab.ROTATE_SPEED);
 			leftMotor.backward();
@@ -95,7 +96,7 @@ public class UltrasonicLocalizer {
 			}
 			leftMotor.setSpeed(0); //stop motors and record beta angle once found the second falling edge
 			rightMotor.setSpeed(0);
-			betaAngle = LocalizationLab.getOdo().getTheta();
+			betaAngle = odo.getTheta();
 		} else { //this is in case we start away from the walls
 			while(currentDistance > 30  && goingClockwise) { //look for the closest wall clockwise
 				currentDistance = getFilteredDistance();
@@ -106,7 +107,7 @@ public class UltrasonicLocalizer {
 			leftMotor.setSpeed(0); //stop and record the alpha angle once detected first falling edge
 			rightMotor.setSpeed(0);
 			goingClockwise = false;
-			alphaAngle = LocalizationLab.getOdo().getTheta();
+			alphaAngle = odo.getTheta();
 			leftMotor.setSpeed(LocalizationLab.ROTATE_SPEED); //go counter counterclockwise
 			rightMotor.setSpeed(LocalizationLab.ROTATE_SPEED);
 			leftMotor.backward();
@@ -130,12 +131,12 @@ public class UltrasonicLocalizer {
 			rightMotor.setSpeed(0);
 			leftMotor.forward();
 			rightMotor.backward();
-			betaAngle = LocalizationLab.getOdo().getTheta();
+			betaAngle = odo.getTheta();
 			Sound.beep();
 		}
 		deltaTheta = (5*Math.PI/4) - ((alphaAngle + betaAngle)/2) - 0.12; //0.1 used for offset
-		double currentTheta = LocalizationLab.getOdo().getTheta();
-		LocalizationLab.getOdo().setTheta(currentTheta + deltaTheta); //correct the odometer's theta value to the correct one
+		double currentTheta = odo.getTheta();
+		odo.setTheta(currentTheta + deltaTheta); //correct the odometer's theta value to the correct one
 	}
 
 	public void risingEdge() {
@@ -220,7 +221,7 @@ public class UltrasonicLocalizer {
 		}
 		deltaTheta = (5*Math.PI)/4 - (alphaAngle + betaAngle)/2 - 0.2;
 		double currentTheta = odo.getTheta();
-		odo.setTheta(currentTheta + deltaTheta - Math.PI); //TODO recheck value of this
+		odo.setTheta(currentTheta + deltaTheta); //TODO recheck value of this
 	}
 
 	/*
