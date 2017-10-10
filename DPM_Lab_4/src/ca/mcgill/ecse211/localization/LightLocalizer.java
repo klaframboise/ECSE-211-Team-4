@@ -10,7 +10,7 @@ public class LightLocalizer {
 
 	private static final float LINE_RED_INTENSITY = 0.30f;
 	//TODO measure this value
-	private static final double LS_TO_CENTER = 9;
+	private static final double LS_TO_CENTER = 10;
 
 	private SampleProvider colorSampler;
 	private float[] lightData;
@@ -131,7 +131,7 @@ public class LightLocalizer {
 			}
 		}
 		
-		// go 2cm past the line
+		// go 4.5cm past the line
 		leftMotor.rotate(LocalizationLab.convertDistance(LocalizationLab.WHEEL_RADIUS, 4.5), true);
 		rightMotor.rotate(LocalizationLab.convertDistance(LocalizationLab.WHEEL_RADIUS, 4.5), false);
 

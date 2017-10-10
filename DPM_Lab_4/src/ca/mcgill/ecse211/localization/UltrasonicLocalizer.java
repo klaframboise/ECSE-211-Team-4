@@ -61,11 +61,11 @@ public class UltrasonicLocalizer {
 				leftMotor.forward();
 				rightMotor.backward();
 			}
-			try {
-				Thread.sleep(3000); //leave some time for the robot to move away so not to disturb the sensor
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+//			try {
+//				Thread.sleep(3000); //leave some time for the robot to move away so not to disturb the sensor
+//			} catch (InterruptedException e) {
+//				e.printStackTrace();
+//			}
 			currentDistance = getFilteredDistance(); 
 			while(currentDistance > 30  && goingClockwise) { //now look for the closest wall clockwise
 				currentDistance = getFilteredDistance();
@@ -112,13 +112,13 @@ public class UltrasonicLocalizer {
 			rightMotor.setSpeed(LocalizationLab.ROTATE_SPEED);
 			leftMotor.backward();
 			rightMotor.forward();
+			Sound.beep();
 			//sweep(clockwise, 4);
 			try {
 				Thread.sleep(3000); //give time for motors to move away from back wall
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			Sound.beep();
 			currentDistance = getFilteredDistance();
 			while(currentDistance > 30 && !goingClockwise) { //we're now looking for another falling edge on the other side
 				currentDistance = getFilteredDistance();
@@ -134,7 +134,12 @@ public class UltrasonicLocalizer {
 			betaAngle = odo.getTheta();
 			Sound.beep();
 		}
-		deltaTheta = (5*Math.PI/4) - ((alphaAngle + betaAngle)/2) - 0.12; //0.1 used for offset
+		if (alphaAngle > betaAngle) {
+			deltaTheta = Math.PI/4.0 - (alphaAngle + betaAngle)/2.0;
+		}
+		else {
+			deltaTheta = (5*Math.PI)/4.0 - (alphaAngle + betaAngle)/2.0;
+		} //0.1 used for offset
 		double currentTheta = odo.getTheta();
 		odo.setTheta(currentTheta + deltaTheta); //correct the odometer's theta value to the correct one
 	}
@@ -219,7 +224,12 @@ public class UltrasonicLocalizer {
 			rightMotor.setSpeed(0);
 			betaAngle = odo.getTheta(); //record the angle for the second rising edge
 		}
-		deltaTheta = (5*Math.PI)/4 - (alphaAngle + betaAngle)/2 - 0.2;
+		if (alphaAngle < betaAngle) {
+			deltaTheta = Math.PI/4.0 - (alphaAngle + betaAngle)/2.0;
+		}
+		else {
+			deltaTheta = (5*Math.PI)/4 - (alphaAngle + betaAngle)/2 - 0.2;
+		}
 		double currentTheta = odo.getTheta();
 		odo.setTheta(currentTheta + deltaTheta); //TODO recheck value of this
 	}
