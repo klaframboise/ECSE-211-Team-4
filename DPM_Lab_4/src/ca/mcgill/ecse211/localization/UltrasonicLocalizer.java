@@ -135,10 +135,10 @@ public class UltrasonicLocalizer {
 			Sound.beep();
 		}
 		if (alphaAngle > betaAngle) {
-			deltaTheta = Math.PI/4.0 - (alphaAngle + betaAngle)/2.0;
+			deltaTheta = Math.PI/4.0 - (alphaAngle + betaAngle)/2.0 - 0.12;
 		}
 		else {
-			deltaTheta = (5*Math.PI)/4.0 - (alphaAngle + betaAngle)/2.0;
+			deltaTheta = (5*Math.PI)/4.0 - (alphaAngle + betaAngle)/2.0 - 0.12;
 		} //0.1 used for offset
 		double currentTheta = odo.getTheta();
 		odo.setTheta(currentTheta + deltaTheta); //correct the odometer's theta value to the correct one
@@ -225,7 +225,7 @@ public class UltrasonicLocalizer {
 			betaAngle = odo.getTheta(); //record the angle for the second rising edge
 		}
 		if (alphaAngle < betaAngle) {
-			deltaTheta = Math.PI/4.0 - (alphaAngle + betaAngle)/2.0;
+			deltaTheta = Math.PI/4.0 - (alphaAngle + betaAngle)/2.0 - 0.2;
 		}
 		else {
 			deltaTheta = (5*Math.PI)/4 - (alphaAngle + betaAngle)/2 - 0.2;
